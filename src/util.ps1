@@ -64,6 +64,13 @@ function Write-PackageVars($vars) {
 	[IO.File]::WriteAllText('\pkg\.pwr', $text)
 }
 
+function Set-RegistryKey($path, $name, $value) {
+	if (!(Test-Path $path)) {
+		New-Item -Path $path -Force | Out-Null
+	}
+	New-ItemProperty -Path $path -Name $name -Value $value -Force | Out-Null
+}
+
 function Find-LatestTag([object[]]$List, [string]$TagProperty, [string]$TagPattern) {
 	$LatestAsset = $List[0]
 	$LatestVersion = [SemanticVersion]::new($LatestAsset.$TagProperty, $TagPattern)

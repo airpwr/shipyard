@@ -1,6 +1,6 @@
 $global:PwrPackageConfig = @{
 	Name = 'vs'
-	Version = '17.142.0'
+	Version = '17.142.1'
 	Nonce = $true
 }
 
@@ -12,27 +12,21 @@ function global:Install-PwrPackage {
 	robocopy /MIR "${env:ProgramFiles(x86)}\Microsoft Visual Studio" "\pkg\Microsoft Visual Studio" | Out-Null
 	robocopy /MIR "${env:ProgramFiles(x86)}\Windows Kits" "\pkg\Windows Kits" | Out-Null
 	$winSdk = '\pkg\Windows Kits\10\'
-	Write-PackageVars @{
-		reg = @{
-			'HKCU:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0' = @{
-				InstallationFolder = $winSdk
-			}
-			'HKCU:\SOFTWARE\Microsoft\Windows Kits\Installed Roots' = @{
-				KitsRoot10 = $winSdk
-			}
-		}
-		var = @{
-			vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" -vcvars_ver=14.29 -arch=x64 -host_arch=x64"
-		}
-		run = @(
-			'$vsenv = cmd /S /C "$vsSetup && set"',
-			'$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split("="); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1] } }'
-		)
+	Set-RegistryKey 'HKCU:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0' 'InstallationFolder' $winSdk
+	Set-RegistryKey 'HKCU:\SOFTWARE\Microsoft\Windows Kits\Installed Roots' 'KitsRoot10' $winSdk
+	Clear-Item "env:$key" -Force -ErrorAction SilentlyContinue
+	$env:path = "\windows;\windows\system32"
+	$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" -vcvars_ver=14.29 -arch=x64 -host_arch=x64"
+	$vsenv = cmd /S /C "$vsSetup && set"
+	$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split("="); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1] } }
+	$vars = 'WindowsSdkVerBinPath', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion21', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH'
+	$map = @{}
+	foreach ($var in $vars) {
+		$map.$var = (get-item "env:$var").value
 	}
+	Write-PackageVars $map
 }
 
 function global:Test-PwrPackageInstall {
 	Get-Content '\pkg\.pwr'
-	(Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName
-	Get-ChildItem '\pkg'
 }
