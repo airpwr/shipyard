@@ -16,6 +16,9 @@ function Test-PwrPackageScript {
 	if (-not $PwrPackageConfig.Name) {
 		Write-Error "shipyard: PwrPackageConfig missing name property"
 	}
+	if ($PwrPackageConfig.Nonce -and (-not $PwrPackageConfig.Version)) {
+		Write-Error "shipyard: PwrPackageConfig missing version property"
+	}
 }
 
 function Invoke-DockerPush($name, $version) {
