@@ -142,7 +142,7 @@ function Set-RegistryKey($path, $name, $value) {
 }
 
 function Resolve-PwrPackge($pkg) {
-	return "$PwrPath\$pkg"
+	return "$PwrPath\pkg\$pkg"
 }
 
 function Split-Package($pkg) {
