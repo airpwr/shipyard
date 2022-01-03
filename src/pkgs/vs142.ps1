@@ -5,8 +5,7 @@ $global:PwrPackageConfig = @{
 }
 
 function global:Install-PwrPackage {
-	$comspec = (get-command cmd).path
-	& $comspec /S /C "echo test 123"
+
 	mkdir '\vs' -Force | Out-Null
 	[Environment]::SetEnvironmentVariable("ProgramFiles(x86)", "\vs", "User")
 	Invoke-WebRequest -UseBasicParsing 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile 'vs_buildtools.exe'
@@ -16,16 +15,17 @@ function global:Install-PwrPackage {
 	$winSdk = '\pkg\Windows Kits\10\'
 	Set-RegistryKey 'HKCU:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0' 'InstallationFolder' $winSdk
 	Set-RegistryKey 'HKCU:\SOFTWARE\Microsoft\Windows Kits\Installed Roots' 'KitsRoot10' $winSdk
-	Clear-Item "env:$key" -Force -ErrorAction SilentlyContinue
 	$comspec = (get-command cmd).path
-	$env:path = "\windows;\windows\system32"
+	Clear-Item "env:*" -Force -ErrorAction SilentlyContinue
+	$env:path = "\windows;\windows\system32;\windows\system32\WindowsPowerShell\v1.0"
 	$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" -vcvars_ver=14.29 -arch=x64 -host_arch=x64"
 	$vsenv = & $comspec /S /C "$vsSetup && set"
+	Write-Output $vsenv
 	$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split("="); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1] } }
 	$vars = 'WindowsSdkVerBinPath', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion21', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH'
 	$map = @{}
 	foreach ($var in $vars) {
-		$map.$var = (get-item "env:$var").value
+		$map.$var = (get-item "env:$var" -ErrorAction SilentlyContinue).value
 	}
 	Write-PackageVars $map
 }
