@@ -15,16 +15,16 @@ function global:Install-PwrPackage {
 	Write-Output 'Done Copying'
 	$winSdk = '\pkg\Windows Kits\10\'
 	Set-RegistryKey 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0' 'InstallationFolder' $winSdk
-	Set-RegistryKey 'HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0' 'InstallationFolder' $winSdk
 	Set-RegistryKey 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows Kits\Installed Roots' 'KitsRoot10' $winSdk
-	Set-RegistryKey 'HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots' 'KitsRoot10' $winSdk
+	Remove-Item (Get-ChildItem -Path '\pkg' -Recurse -Include 'netfxsdk.bat' | Select-Object -First 1).FullName -Force
+	Remove-Item (Get-ChildItem -Path '\pkg' -Recurse -Include 'dotnet.bat' | Select-Object -First 1).FullName -Force
 	Write-Output 'Registry Saved'
 	$vars = 'WindowsSdkVerBinPath', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH'
 	foreach ($v in $vars) {
 		Clear-Item "env:$v" -Force -ErrorAction SilentlyContinue
 	}
 	Write-Output 'Env Cleared'
-	$path = "C:\windows;C:\windows\system32;C:\windows\system32\WindowsPowerShell\v1.0;"
+	$path = "C:\windows;C:\windows\system32;C:\windows\system32\WindowsPowerShell\v1.0"
 	$env:path = $path
 	$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" -vcvars_ver=14.29 -arch=x64 -host_arch=x64"
 	Write-Output 'Starting Dev Setup'
