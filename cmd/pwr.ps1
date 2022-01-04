@@ -205,23 +205,28 @@ function Get-Packages {
 		$OutOfDate = [DateTime]::Compare((Get-Date), $LastWrite + (New-TimeSpan -Days 1)) -gt 0
 	}
 	if (!$exists -or $OutOfDate -or $Fetch) {
-		Write-Output 'pwr: fetching package list'
-		$tagList = Get-DockerTags $PwrScope
-		$pkgs = @{}
-		$names = @{}
-		foreach ($tag in $tagList.tags) {
-			$tag -match '([^-]+)-(.+)' | Out-Null
-			if ($Matches) {
-				$pkg = $Matches[1]
-				$ver = $Matches[2]
-				$names.$pkg = $null
-				$pkgs.$pkg = @($pkgs.$pkg) + @([SemanticVersion]::new($ver)) | Sort-Object
+		try {
+			Write-Output 'pwr: fetching package list'
+			$tagList = Get-DockerTags $PwrScope
+			$pkgs = @{}
+			$names = @{}
+			foreach ($tag in $tagList.tags) {
+				$tag -match '([^-]+)-(.+)' | Out-Null
+				if ($Matches) {
+					$pkg = $Matches[1]
+					$ver = $Matches[2]
+					$names.$pkg = $null
+					$pkgs.$pkg = @($pkgs.$pkg) + @([SemanticVersion]::new($ver)) | Sort-Object
+				}
 			}
+			foreach ($name in $names.keys) {
+				$pkgs.$name = $pkgs.$name | ForEach-Object { $_.ToString() }
+			}
+			$pkgs | ConvertTo-Json -Depth 50 -Compress | Out-File $pkgFile -Encoding 'utf8' -Force
+		} catch {
+			Write-Host -ForegroundColor Red 'pwr: failed to fetch package list'
+			Write-Debug "pwr: encountered error while fetching package list `r`n    > $($Error[0])"
 		}
-		foreach ($name in $names.keys) {
-			$pkgs.$name = $pkgs.$name | ForEach-Object { $_.ToString() }
-		}
-		$pkgs | ConvertTo-Json -Depth 50 -Compress | Out-File $pkgFile -Encoding 'utf8' -Force
 	}
 	return Get-Content $pkgFile | ConvertFrom-Json
 }
@@ -254,12 +259,6 @@ function Invoke-PackagePull($pkg) {
 function Invoke-PackageShell($pkg) {
 	$PkgPath = Resolve-PwrPackge $pkg
 	$vars = (Get-Content -Path "$PkgPath\.pwr").Replace('${.}', (Resolve-Path $PkgPath).Path.Replace('\', '\\')) | ConvertFrom-Json | AsHashTable
-	#Reg
-	foreach ($k in $vars.reg.keys) {
-		foreach ($j in $vars.reg.$k.keys) {
-			Set-RegistryKey $k $j $vars.reg.$k.$j
-		}
-	}
 	# Vars
 	foreach ($k in $vars.var.keys) {
 		Set-Variable -Name $k -Value $vars.var.$k -Scope 'global'
@@ -271,10 +270,6 @@ function Invoke-PackageShell($pkg) {
 			$prefix += "${env:path};"
 		}
 		Set-Item "env:$k" "$prefix$($vars.env.$k)"
-	}
-	# Run
-	foreach ($line in $vars.run) {
-		Invoke-Expression $line
 	}
 }
 
@@ -305,7 +300,7 @@ $Pkgs = Get-Packages
 mkdir $PwrPath -Force | Out-Null
 switch ($Command) {
 	{$_ -in 'v', 'version'} {
-		Write-Host 'pwr 0.0.0'
+		Write-Host 'pwr: version 0.1.0'
 	}
 	'fetch' {
 		Assert-NonEmptyPackages
