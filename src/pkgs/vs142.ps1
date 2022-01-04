@@ -10,11 +10,13 @@ function global:Install-PwrPackage {
 	Invoke-WebRequest -UseBasicParsing 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile 'vs_buildtools.exe'
 	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.19041 --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 --remove Microsoft.VisualStudio.Component.Windows81SDK || IF "%ERRORLEVEL%"=="3010" EXIT 0'
 	Write-Output 'Done Installing'
-	robocopy /MIR "${env:ProgramFiles(x86)}\Microsoft Visual Studio" "\pkg\Microsoft Visual Studio" | Out-Null
-	robocopy /MIR "${env:ProgramFiles(x86)}\Windows Kits" "\pkg\Windows Kits" | Out-Null
+	robocopy /MIR /MT:32 "${env:ProgramFiles(x86)}\Microsoft Visual Studio" "\pkg\Microsoft Visual Studio" | Out-Null
+	robocopy /MIR /MT:32 "${env:ProgramFiles(x86)}\Windows Kits" "\pkg\Windows Kits" | Out-Null
 	Write-Output 'Done Copying'
 	$winSdk = '\pkg\Windows Kits\10\'
+	Set-RegistryKey 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0' 'InstallationFolder' $winSdk
 	Set-RegistryKey 'HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0' 'InstallationFolder' $winSdk
+	Set-RegistryKey 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows Kits\Installed Roots' 'KitsRoot10' $winSdk
 	Set-RegistryKey 'HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots' 'KitsRoot10' $winSdk
 	Write-Output 'Registry Saved'
 	$vars = 'WindowsSdkVerBinPath', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH'
