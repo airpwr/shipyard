@@ -17,27 +17,24 @@ function global:Install-PwrPackage {
 	Set-RegistryKey 'HKCU:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0' 'InstallationFolder' $winSdk
 	Set-RegistryKey 'HKCU:\SOFTWARE\Microsoft\Windows Kits\Installed Roots' 'KitsRoot10' $winSdk
 	Write-Output 'Registry Saved'
-	$comspec = Split-Path (get-command cmd).Path -Parent
-	$pwsh = Split-Path (get-command powershell).Path -Parent
-	Write-Output "cmd=$comspec"
-	Write-Output "pwsh=$pwsh"
-	Clear-Item "env:*" -Force -ErrorAction SilentlyContinue
+	$vars = 'WindowsSdkVerBinPath', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion21', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH'
+	foreach ($v in $vars) {
+		Clear-Item "env:$v" -Force -ErrorAction SilentlyContinue
+	}
 	Write-Output 'Env Cleared'
-	$env:path = "\windows;\windows\system32;\windows\system32\WindowsPowerShell\v1.0;$comspec;$pwsh"
-	Write-Output "path=$env:path"
-	[Environment]::SetEnvironmentVariable("path", "$env:path", "User")
-	Write-Output "path=$env:path"
+	$path = "C:\windows;C:\windows\system32;C:\windows\system32\WindowsPowerShell\v1.0;"
+	$env:path = $path
 	$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" -vcvars_ver=14.29 -arch=x64 -host_arch=x64"
 	Write-Output 'Starting Dev Setup'
 	$vsenv = cmd /S /C "$vsSetup && set"
 	Write-Output $vsenv
 	$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split("="); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1] } }
-	$vars = 'WindowsSdkVerBinPath', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion21', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH'
 	$map = @{}
 	foreach ($var in $vars) {
 		$map.$var = (get-item "env:$var" -ErrorAction SilentlyContinue).value
 	}
-	Write-PackageVars $map
+	$map.path = $map.path.Replace($path, '')
+	Write-PackageVars @{ env = $map }
 }
 
 function global:Test-PwrPackageInstall {
