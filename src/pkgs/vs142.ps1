@@ -17,11 +17,16 @@ function global:Install-PwrPackage {
 	Set-RegistryKey 'HKCU:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0' 'InstallationFolder' $winSdk
 	Set-RegistryKey 'HKCU:\SOFTWARE\Microsoft\Windows Kits\Installed Roots' 'KitsRoot10' $winSdk
 	Write-Output 'Registry Saved'
-	$comspec = Split-Path (get-command powershell).Path -Parent
-	$pwsh = Split-Path (get-command cmd).Path -Parent
+	$comspec = Split-Path (get-command cmd).Path -Parent
+	$pwsh = Split-Path (get-command powershell).Path -Parent
+	Write-Output "cmd=$comspec"
+	Write-Output "pwsh=$pwsh"
 	Clear-Item "env:*" -Force -ErrorAction SilentlyContinue
 	Write-Output 'Env Cleared'
 	$env:path = "\windows;\windows\system32;\windows\system32\WindowsPowerShell\v1.0;$comspec;$pwsh"
+	Write-Output "path=$env:path"
+	[Environment]::SetEnvironmentVariable("path", "$env:path", "User")
+	Write-Output "path=$env:path"
 	$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" -vcvars_ver=14.29 -arch=x64 -host_arch=x64"
 	Write-Output 'Starting Dev Setup'
 	$vsenv = cmd /S /C "$vsSetup && set"
