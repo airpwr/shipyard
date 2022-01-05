@@ -58,17 +58,19 @@ function Invoke-PwrScript($pkg) {
 function Save-WorkflowMatrix {
 	$tagList = Get-DockerTags 'airpower/shipyard'
 	$pkgs = @()
-	Get-ChildItem . -Include '*.ps1' -Recurse |
-		Where-Object { $_.FullName -match [Regex]::Escape('\pkgs\') } |
-		ForEach-Object {
-			Write-Output "shipyard: analyzing $($_.Name)"
-			Clear-PwrPackageScript
-			& $_.FullName
-			Test-PwrPackageScript
-			if ((-not $PwrPackageConfig.Nonce) -or ("$($PwrPackageConfig.Name)-$($PwrPackageConfig.Version)" -notin $tagList.tags)) {
-				$pkgs += ,$_.FullName.Replace((Get-Location), '.')
-			}
+	$scripts = Get-ChildItem . -Include '*.ps1' -Recurse | Where-Object { $_.FullName -match [Regex]::Escape('\pkgs\') }
+	foreach ($script in $scripts) {
+		Write-Output "shipyard: analyzing $($script.Name)"
+		Clear-PwrPackageScript
+		& $script.FullName
+		Test-PwrPackageScript
+		if ("${env:GITHUB_REF_NAME}.ps1" -eq $script.Name) {
+			$pkgs = ,$script.FullName.Replace((Get-Location), '.')
+			break
+		} elseif ((-not $PwrPackageConfig.Nonce) -or ("$($PwrPackageConfig.Name)-$($PwrPackageConfig.Version)" -notin $tagList.tags)) {
+			$pkgs += ,$script.FullName.Replace((Get-Location), '.')
 		}
+	}
 	Clear-PwrPackageScript
 	[IO.File]::WriteAllText('.matrix', (ConvertTo-Json @{ package = $pkgs } -Depth 50 -Compress))
 }
