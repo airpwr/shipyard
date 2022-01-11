@@ -22,10 +22,10 @@ function global:Install-PwrPackage {
 			Install-BuildTool @Params
 			Write-PackageVars @{
 				env = @{
-					path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'perl.exe' | Select-Object -First 1).DirectoryName
-				}
-				var = @{
-					gmake = (Get-ChildItem -Path '\pkg' -Recurse -Include 'gmake.exe' | Select-Object -First 1).FullName
+					path = (@(
+						(Get-ChildItem -Path '\pkg' -Recurse -Include 'perl.exe' | Select-Object -First 1).DirectoryName,
+						(Get-ChildItem -Path '\pkg' -Recurse -Include 'gmake.exe' | Select-Object -First 1).DirectoryName
+					) -join ';')
 				}
 			}
 			return
