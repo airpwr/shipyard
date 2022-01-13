@@ -21,6 +21,13 @@ function Test-PwrPackageScript {
 	}
 }
 
+function Invoke-PwrPackageScan {
+	& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File '\pkg'
+	if ($LASTEXITCODE -eq 2) {
+		Write-Error 'shipyard: potential malware found'
+	}
+}
+
 function Invoke-DockerPush($name, $version) {
 	$tag = "airpower/shipyard:$name-$version"
 	& docker build -f Dockerfile -t $tag \pkg
