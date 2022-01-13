@@ -22,11 +22,13 @@ function Test-PwrPackageScript {
 }
 
 function Invoke-PwrPackageScan {
+	Get-MpPreference
 	Set-Service -Name wuauserv -StartupType Manual -Status Running
 	(Get-Service wuauserv).WaitForStatus('Running')
 	& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -SignatureUpdate
 	try {
 		& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File '\pkg'
+		Get-Content "$env:Temp\MpCmdRun.log"
 	} catch {
 		$Error[0] | Format-List -Property * -Force
 		Write-Error $Error[0]
