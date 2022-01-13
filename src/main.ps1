@@ -22,6 +22,7 @@ function Test-PwrPackageScript {
 }
 
 function Invoke-PwrPackageScan {
+	Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan $false -DisableRemovableDriveScanning $false -DisableScanningNetworkFiles $false
 	Get-MpPreference
 	Set-Service -Name wuauserv -StartupType Manual -Status Running
 	(Get-Service wuauserv).WaitForStatus('Running')
