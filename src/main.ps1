@@ -22,9 +22,10 @@ function Test-PwrPackageScript {
 }
 
 function Invoke-PwrPackageScan {
-	Set-MpPreference -DisableScanningNetworkFiles $false -DisableScanningMappedNetworkDrivesForFullScan $false -DisableRemovableDriveScanning $false
+	Remove-MpPreference -ExclusionPath (Get-MpPreference).ExclusionPath
 	Update-MpSignature
 	Start-MpScan -ScanPath '\pkg' -ScanType CustomScan
+	Get-MpThreatDetection
 }
 
 function Invoke-DockerPush($name, $version) {
