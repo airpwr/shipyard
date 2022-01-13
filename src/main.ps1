@@ -24,10 +24,9 @@ function Test-PwrPackageScript {
 function Invoke-PwrPackageScan {
 	Set-Service -Name wuauserv -StartupType Manual -Status Running
 	(Get-Service wuauserv).WaitForStatus('Running')
-	Remove-MpPreference -ExclusionPath (Get-MpPreference).ExclusionPath
-	Update-MpSignature
+	& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -SignatureUpdate
 	try {
-		Start-MpScan -ScanPath '\pkg' -ScanType CustomScan
+		& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File '\pkg'
 	} catch {
 		$Error[0] | Format-List -Property * -Force
 		Write-Error $Error[0]
