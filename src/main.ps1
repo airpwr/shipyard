@@ -22,12 +22,9 @@ function Test-PwrPackageScript {
 }
 
 function Invoke-PwrPackageScan {
+	Set-MpPreference -DisableScanningNetworkFiles $false -DisableScanningMappedNetworkDrivesForFullScan $false -DisableRemovableDriveScanning $false
 	Update-MpSignature
 	Start-MpScan -ScanPath '\pkg' -ScanType CustomScan
-	if (-not $?) {
-		Get-Content "$env:Temp\MpCmdRun.log"
-		Write-Error 'shipyard: potential malware found'
-	}
 }
 
 function Invoke-DockerPush($name, $version) {
