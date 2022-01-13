@@ -22,8 +22,9 @@ function Test-PwrPackageScript {
 }
 
 function Invoke-PwrPackageScan {
-	& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File '\pkg'
-	if ($LASTEXITCODE -eq 2) {
+	Update-MpSignature
+	Start-MpScan -ScanPath '\pkg' -ScanType CustomScan
+	if (-not $?) {
 		Get-Content "$env:Temp\MpCmdRun.log"
 		Write-Error 'shipyard: potential malware found'
 	}
