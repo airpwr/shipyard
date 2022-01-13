@@ -24,7 +24,12 @@ function Test-PwrPackageScript {
 function Invoke-PwrPackageScan {
 	Remove-MpPreference -ExclusionPath (Get-MpPreference).ExclusionPath
 	Update-MpSignature
-	Start-MpScan -ScanPath '\pkg' -ScanType CustomScan
+	try {
+		Start-MpScan -ScanPath '\pkg' -ScanType CustomScan
+	} catch {
+		$Error[0] | Format-List -Property * -Force
+		Write-Error $Error[0]
+	}
 	Get-MpThreatDetection
 }
 
