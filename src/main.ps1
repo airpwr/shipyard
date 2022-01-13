@@ -23,6 +23,7 @@ function Test-PwrPackageScript {
 
 function Invoke-PwrPackageScan {
 	Set-Service -Name wuauserv -StartupType Manual -Status Running
+	(Get-Service wuauserv).WaitForStatus('Running')
 	Remove-MpPreference -ExclusionPath (Get-MpPreference).ExclusionPath
 	Update-MpSignature
 	try {
