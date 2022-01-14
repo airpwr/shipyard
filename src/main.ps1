@@ -22,19 +22,22 @@ function Test-PwrPackageScript {
 }
 
 function Invoke-PwrPackageScan {
-	Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan $false -DisableRemovableDriveScanning $false -DisableScanningNetworkFiles $false
-	Get-MpPreference
+	# Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan $false -DisableRemovableDriveScanning $false -DisableScanningNetworkFiles $false
+	# Get-MpPreference
 	Set-Service -Name wuauserv -StartupType Manual -Status Running
 	(Get-Service wuauserv).WaitForStatus('Running')
-	& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -SignatureUpdate
-	try {
-		& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File (Resolve-Path '\pkg').Path
-		Get-Content "$env:Temp\MpCmdRun.log"
-	} catch {
-		$Error[0] | Format-List -Property * -Force
-		Write-Error $Error[0]
-	}
+	Update-MpSignature
+	Start-MpScan -ScanType CustomScan -ScanPath (Resolve-Path '\pkg').Path
 	Get-MpThreatDetection
+	# & "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -SignatureUpdate
+	# try {
+	# 	& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File (Resolve-Path '\pkg').Path
+	# 	Get-Content "$env:Temp\MpCmdRun.log"
+	# } catch {
+	# 	$Error[0] | Format-List -Property * -Force
+	# 	Write-Error $Error[0]
+	# }
+	# Get-MpThreatDetection
 }
 
 function Invoke-DockerPush($name, $version) {
