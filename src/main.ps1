@@ -21,6 +21,14 @@ function Test-PwrPackageScript {
 	}
 }
 
+function Invoke-PwrPackageScan {
+	Set-Service -Name wuauserv -StartupType Manual -Status Running
+	(Get-Service wuauserv).WaitForStatus('Running')
+	Update-MpSignature
+	Start-MpScan -ScanType CustomScan -ScanPath (Resolve-Path '\pkg').Path
+	Get-MpThreatDetection
+}
+
 function Invoke-DockerPush($name, $version) {
 	$tag = "airpower/shipyard:$name-$version"
 	& docker build -f Dockerfile -t $tag \pkg
