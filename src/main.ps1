@@ -28,7 +28,7 @@ function Invoke-PwrPackageScan {
 	(Get-Service wuauserv).WaitForStatus('Running')
 	& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -SignatureUpdate
 	try {
-		& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File '\pkg'
+		& "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File (Resolve-Path '\pkg').Path
 		Get-Content "$env:Temp\MpCmdRun.log"
 	} catch {
 		$Error[0] | Format-List -Property * -Force
