@@ -44,6 +44,7 @@ jobs:
     - name: Run ${{ matrix.package }}
       id: pkg
       run: |
+        iex (iwr 'https://raw.githubusercontent.com/airpwr/airpwr/main/src/install.ps1')
         . .\src\main.ps1
         Invoke-PwrScript '${{ matrix.package }}'
         Write-Output "::set-output name=up-to-date::$($true -eq $PwrPackageConfig.UpToDate)"

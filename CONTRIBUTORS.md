@@ -5,6 +5,7 @@
 ## Signed-off-by
 
 - Copyright 2021 Troy Southard <troy.southard@us.af.mil>
+- Copyright 2022 Nick Little <nicklaus.little@gmail.com>
 - _Add the copyright date, your name, and email address here. (PLEASE KEEP THIS LINE)_
 
 ## Note for U.S. Federal Employees
