@@ -18,27 +18,27 @@ function global:Install-PwrPackage {
 	Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/$($Params.Owner)/$($Params.Repo)/zipball/$($Latest.Name)" -OutFile "$env:Temp\repo.zip"
 	Expand-Archive "$env:Temp\repo.zip" '\repo'
 	$env:repo = (Get-ChildItem -Path '\repo' -Recurse -Include 'setup.py' | Select-Object -First 1).DirectoryName
-	# Install python
-	$PythonVersion = "3.10.1"
-	$PythonAsset = "$env:Temp/python.zip"
-	Invoke-WebRequest -UseBasicParsing "https://www.python.org/ftp/python/$PythonVersion/python-$PythonVersion-embed-amd64.zip" -OutFile $PythonAsset
-	Expand-Archive $PythonAsset '\python'
-	Remove-Item '\python\*._pth'
 	# Install pip
-	Invoke-WebRequest -UseBasicParsing 'https://bootstrap.pypa.io/get-pip.py' -OutFile '\python\get-pip.py'
-	& '\python\python.exe' '\python\get-pip.py' --no-warn-script-location
-	& '\python\python.exe' -m pip install '--target' '\pkg' $env:repo
+	Invoke-WebRequest -UseBasicParsing 'https://bootstrap.pypa.io/get-pip.py' -OutFile "$env:Temp\get-pip.py"
+	pwr sh python
+	python.exe "$env:Temp\get-pip.py" --no-warn-script-location
+	python.exe -m pip install '--target' '\pkg' $env:repo
+	pwr exit
+	# Fix python path in exe
+	$ExeDirectory = (Get-ChildItem -Path '\pkg' -Recurse -Include 'cmake-converter.exe' | Select-Object -First 1).DirectoryName
+	$ExeData = Get-Content -Raw -AsByteStream "$ExeDirectory\cmake-converter.exe"
+	$FixedData = (-split (($ExeData.ForEach('ToString', 'X') -join ' ') -replace '\b23 21( [2-7].)+ 5C 70 79 74 68 6F 6E 2E 65 78 65', '23 21 70 79 74 68 6F 6E 2E 65 78 65') -replace '^', '0x') -as [byte[]]
+	Set-Content -Value $FixedData -AsByteStream "$ExeDirectory\cmake-converter.exe"
 	Write-PackageVars @{
 		env = @{
-			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'cmake-converter.exe' | Select-Object -First 1).DirectoryName
+			path = $ExeDirectory
 			pythonpath = '\pkg'
 		}
 	}
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	$env:Path = "\python;$env:Path"
+	pwr sh python, 'file:///\pkg'
 	cmake-converter -s "$env:repo\test\datatest\sln\cpp.sln"
 	pwr exit
 }
