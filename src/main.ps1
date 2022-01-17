@@ -39,10 +39,11 @@ function Invoke-PwrInit {
 	if (-not $PwrPackageConfig.Nonce) {
 		$tagList = Get-DockerTags 'airpower/shipyard'
 		$latest = [SemanticVersion]::new()
-		$matcher = if ($PwrPackageConfig.Matcher) { $PwrPackageConfig.Matcher } else { "^$($PwrPackageConfig.Name)-" }
+		$namePart = "$($PwrPackageConfig.Name)-"
+		$matcher = if ($PwrPackageConfig.Matcher) { $PwrPackageConfig.Matcher } else { "^$namePart" }
 		foreach ($item in $tagList.tags) {
 			if ($item -match $matcher) {
-				$v = [SemanticVersion]::new($item.Substring($item.IndexOf('-') + 1))
+				$v = [SemanticVersion]::new($item.Substring($namePart.length))
 				if ($v.LaterThan($latest)) {
 					$latest = $v
 				}
