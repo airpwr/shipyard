@@ -28,9 +28,14 @@ function global:Install-PwrPackage {
 	Invoke-WebRequest -UseBasicParsing 'https://bootstrap.pypa.io/get-pip.py' -OutFile '\python\get-pip.py'
 	& '\python\python.exe' '\python\get-pip.py' --no-warn-script-location
 	& '\python\python.exe' -m pip install '--target' '\pkg' $env:repo
+	# Fix python path in exe
+	$ExeDirectory = (Get-ChildItem -Path '\pkg' -Recurse -Include 'cmake-converter.exe' | Select-Object -First 1).DirectoryName
+	$ExeData = Get-Content -Raw -AsByteStream "$ExeDirectory\cmake-converter.exe"
+	$FixedData = (-split (($ExeData.ForEach('ToString', 'X') -join ' ') -replace '\b23 21( [2-7].)+ 5C 70 79 74 68 6F 6E 2E 65 78 65', '23 21 70 79 74 68 6F 6E 2E 65 78 65') -replace '^', '0x') -as [byte[]]
+	Set-Content -Value $FixedData -AsByteStream "$ExeDirectory\cmake-converter.exe"
 	Write-PackageVars @{
 		env = @{
-			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'cmake-converter.exe' | Select-Object -First 1).DirectoryName
+			path = $ExeDirectory
 			pythonpath = '\pkg'
 		}
 	}
