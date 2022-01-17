@@ -15,14 +15,11 @@ function global:Install-PwrPackage {
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
-	# Install 7zip
-	Invoke-WebRequest -UseBasicParsing 'https://www.7-zip.org/a/7za920.zip' -OutFile "$env:temp\7z.zip"
-	Expand-Archive "$env:temp\7z.zip" "$env:temp\7z"
-	$llvm = "$env:Temp\$($Asset.Name)"
 	# Download llvm
+	$llvm = "$env:Temp\$($Asset.Name)"
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile $llvm
 	# Unpack llvm
-	& "$env:temp\7z\7za.exe" x -o'\pkg' $llvm
+	& $llvm /S /D=\pkg
 	Write-PackageVars @{
 		env = @{
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'clang.exe' | Select-Object -First 1).DirectoryName
