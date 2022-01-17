@@ -117,7 +117,14 @@ function Get-GitHubTag {
 		[Parameter(Mandatory=$true)][string]$Repo,
 		[Parameter(Mandatory=$true)][string]$TagPattern
 	)
-	$Tags = (Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/$Owner/$Repo/tags?per_page=100").Content | ConvertFrom-Json
+	$i = 1
+	$Tags = @()
+	do {
+		Write-Output "page=$i"
+		$Page = (Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/$Owner/$Repo/tags?per_page=100&page=$i").Content | ConvertFrom-Json
+		$Tags += $Page
+		$i++
+	} while ($Page.Count -gt 0)
 	$Latest = Find-LatestTag $Tags 'name' $TagPattern
 	if ($Latest) {
 		return @{
