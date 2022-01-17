@@ -23,6 +23,7 @@ function global:Install-PwrPackage {
 		AssetURL = "https://www.python.org/ftp/python/$Version/$AssetName"
 	}
 	Install-BuildTool @Params
+	Remove-Item '\pkg\*._pth'
 	Write-PackageVars @{
 		env = @{
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'python.exe' | Select-Object -First 1).DirectoryName
