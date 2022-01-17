@@ -15,6 +15,7 @@ function global:Install-PwrPackage {
 		return
 	}
 	$Tag = $Latest.name
+	mkdir '\pkg'
 	Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/airpwr/airpwr/$Tag/src/pwr.ps1" -OutFile '\pkg\pwr.ps1'
 	Write-PackageVars @{
 		env = @{
