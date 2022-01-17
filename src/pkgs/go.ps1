@@ -15,7 +15,7 @@ function global:Install-PwrPackage {
 		return
 	}
 	$Tag = $Latest.name
-	$AssetName = "${$Tag}.windows-amd64.zip"
+	$AssetName = "$Tag.windows-amd64.zip"
 	$Params = @{
 		AssetName = $AssetName
 		AssetIdentifier = $Tag
