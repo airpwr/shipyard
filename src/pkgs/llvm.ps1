@@ -1,5 +1,5 @@
 $global:PwrPackageConfig = @{
-	Name = 'clang'
+	Name = 'llvm'
 }
 
 function global:Install-PwrPackage {
