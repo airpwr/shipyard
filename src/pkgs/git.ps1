@@ -23,13 +23,18 @@ function global:Install-PwrPackage {
 	Write-PackageVars @{
 		env = @{
 			path = (@(
-				(Get-ChildItem -Path '\pkg' -Recurse -Include 'git.exe' | Select-Object -First 1).DirectoryName,
-				(Get-ChildItem -Path '\pkg' -Recurse -Include 'sed.exe' | Select-Object -First 1).DirectoryName
+				(Get-ChildItem -Path '\pkg' -Recurse -Include 'gitk.exe' | Select-Object -First 1).DirectoryName,
+				(Get-ChildItem -Path '\pkg' -Recurse -Include 'sed.exe' | Select-Object -First 1).DirectoryName,
+				(Get-ChildItem -Path '\pkg' -Recurse -Include 'curl.exe' | Select-Object -First 1).DirectoryName
 			) -join ';')
 		}
 	}
 }
 
 function global:Test-PwrPackageInstall {
-	Get-Content '\pkg\.pwr'
+	pwr sh 'file:///\pkg'
+	git --version
+	curl --version
+	sed --version
+	pwr exit
 }
