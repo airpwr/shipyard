@@ -4,6 +4,7 @@ on:
   push:
   schedule:
   - cron: '9 2 */10 * *'
+  workflow_dispatch:
 
 jobs:
   init:
