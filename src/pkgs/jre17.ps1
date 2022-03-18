@@ -1,13 +1,13 @@
 $global:PwrPackageConfig = @{
-	Name = 'java'
-	Matcher = '^java-17\.'
+	Name = 'jre'
+	Matcher = '^jre-17\.'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'adoptium'
 		Repo = 'temurin17-binaries'
-		AssetPattern = '^.*jdk_x64_windows_hotspot_.+?\.zip$'
+		AssetPattern = '^.*jre_x64_windows_hotspot_.+?\.zip$'
 		TagPattern = "^jdk-([0-9]+)\.([0-9]+)\.([0-9]+)[^']+$"
 	}
 	$Asset = Get-GitHubRelease @Params
@@ -31,5 +31,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	Get-Content '\pkg\.pwr'
+	pwr sh 'file:///\pkg'
+	java -version
+	pwr exit
 }

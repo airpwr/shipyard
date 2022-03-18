@@ -1,5 +1,5 @@
 $global:PwrPackageConfig = @{
-	Name = 'vs'
+	Name = 'vs-buildtools'
 	Version = '17.142.1'
 	Nonce = $true
 }

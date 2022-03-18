@@ -1,14 +1,14 @@
 $global:PwrPackageConfig = @{
-	Name = 'java'
-	Matcher = '^java-8\.'
+	Name = 'jdk'
+	Matcher = '^jdk-11\.'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'adoptium'
-		Repo = 'temurin8-binaries'
+		Repo = 'temurin11-binaries'
 		AssetPattern = '^.*jdk_x64_windows_hotspot_.+?\.zip$'
-		TagPattern = "^jdk(8)u([0-9]+)[^']+$"
+		TagPattern = "^jdk-([0-9]+)\.([0-9]+)\.([0-9]+)[^']+$"
 	}
 	$Asset = Get-GitHubRelease @Params
 	$PwrPackageConfig.UpToDate = -not $Asset.Version.LaterThan($PwrPackageConfig.Latest)
@@ -31,5 +31,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	Get-Content '\pkg\.pwr'
+	pwr sh 'file:///\pkg'
+	javac -version
+	pwr exit
 }

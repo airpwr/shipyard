@@ -1,12 +1,12 @@
 $global:PwrPackageConfig = @{
-	Name = 'java'
-	Matcher = '^java-11\.'
+	Name = 'jdk'
+	Matcher = '^jdk-17\.'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'adoptium'
-		Repo = 'temurin11-binaries'
+		Repo = 'temurin17-binaries'
 		AssetPattern = '^.*jdk_x64_windows_hotspot_.+?\.zip$'
 		TagPattern = "^jdk-([0-9]+)\.([0-9]+)\.([0-9]+)[^']+$"
 	}
@@ -31,5 +31,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	Get-Content '\pkg\.pwr'
+	pwr sh 'file:///\pkg'
+	javac -version
+	pwr exit
 }
