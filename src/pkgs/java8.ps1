@@ -1,6 +1,6 @@
 $global:PwrPackageConfig = @{
-	Name = 'java'
-	Matcher = '^java-8\.'
+	Name = 'jdk'
+	Matcher = '^jdk-8\.'
 }
 
 function global:Install-PwrPackage {
