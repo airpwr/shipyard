@@ -31,5 +31,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	Get-Content '\pkg\.pwr'
+	pwr sh 'file:///\pkg'
+	javac -version
+	pwr exit
 }
