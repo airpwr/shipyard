@@ -6,7 +6,7 @@ function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'golang'
 		Repo = 'go'
-		TagPattern = '^go([0-9]+)\.([0-9]+)\.([0-9]+)$'
+		TagPattern = '^go([0-9]+)\.([0-9]+)\.?([0-9]+)?$'
 	}
 	$Latest = Get-GitHubTag @Params
 	$PwrPackageConfig.UpToDate = -not $Latest.Version.LaterThan($PwrPackageConfig.Latest)
