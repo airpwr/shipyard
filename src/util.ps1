@@ -142,7 +142,6 @@ function Get-GitHubTag {
 function Install-BuildTool {
 	param (
 		[Parameter(Mandatory=$true)][string]$AssetName,
-		[Parameter(Mandatory=$true)][string]$AssetIdentifier,
 		[Parameter(Mandatory=$true)][string]$AssetURL
 	)
 	$ToolDir = "\pkg"

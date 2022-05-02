@@ -3,22 +3,17 @@ $global:PwrPackageConfig = @{
 }
 
 function global:Install-PwrPackage {
-	$Params = @{
-		Owner = 'microsoft'
-		Repo = 'vscode'
-		TagPattern = '^([0-9]+)\.([0-9]{1,2})\.([0-9]+)$'
-	}
-	$Latest = Get-GitHubTag @Params
-	$PwrPackageConfig.UpToDate = -not $Latest.Version.LaterThan($PwrPackageConfig.Latest)
-	$PwrPackageConfig.Version = $Latest.Version.ToString()
+	$AssetURL = 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-archive'
+	$Response = Invoke-WebRequest $AssetURL -Method 'HEAD'
+	$Version = [SemanticVersion]::new($Response.Headers.'Content-Disposition', '^.*filename="VSCode-win32-x64-([0-9]+)\.([0-9]+)\.([0-9]+)\.zip"$')
+	$PwrPackageConfig.UpToDate = -not $Version.LaterThan($PwrPackageConfig.Latest)
+	$PwrPackageConfig.Version = $Version.ToString()
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
-	$Tag = $Latest.name
 	$Params = @{
 		AssetName = 'vscode.zip'
-		AssetIdentifier = $Tag
-		AssetURL = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-archive"
+		AssetURL = $AssetURL
 	}
 	Install-BuildTool @Params
 	Write-PackageVars @{
