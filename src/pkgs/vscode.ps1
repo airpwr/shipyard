@@ -6,7 +6,7 @@ function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'microsoft'
 		Repo = 'vscode'
-		TagPattern = '^([0-9]+)\.([0-9]+)\.([0-9]+)$'
+		TagPattern = '^([0-9]+)\.([0-9]{1,2})\.([0-9]+)$'
 	}
 	$Latest = Get-GitHubTag @Params
 	$PwrPackageConfig.UpToDate = -not $Latest.Version.LaterThan($PwrPackageConfig.Latest)
