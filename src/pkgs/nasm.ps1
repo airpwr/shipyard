@@ -19,7 +19,6 @@ function global:Install-PwrPackage {
 	$AssetName = "nasm-$Version-win64.zip"
 	$Params = @{
 		AssetName = $AssetName
-		AssetIdentifier = $Tag
 		AssetURL = "https://www.nasm.us/pub/nasm/releasebuilds/$Version/win64/$AssetName"
 	}
 	Install-BuildTool @Params

@@ -18,7 +18,6 @@ function global:Install-PwrPackage {
 	$AssetName = "$Tag.windows-amd64.zip"
 	$Params = @{
 		AssetName = $AssetName
-		AssetIdentifier = $Tag
 		AssetURL = "https://go.dev/dl/$AssetName"
 	}
 	Install-BuildTool @Params

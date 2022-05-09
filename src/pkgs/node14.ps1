@@ -20,7 +20,6 @@ function global:Install-PwrPackage {
 	$AssetName = "node-$Tag-win-x64.zip"
 	$Params = @{
 		AssetName = $AssetName
-		AssetIdentifier = $Tag
 		AssetURL = "https://nodejs.org/dist/$Tag/$AssetName"
 	}
 	Install-BuildTool @Params

@@ -19,7 +19,6 @@ function global:Install-PwrPackage {
 	$AssetName = "jom_$Version.zip"
 	$Params = @{
 		AssetName = $AssetName
-		AssetIdentifier = $Tag
 		AssetURL = "http://qt.mirror.constant.com/official_releases/jom/$AssetName"
 	}
 	Install-BuildTool @Params

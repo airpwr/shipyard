@@ -19,7 +19,6 @@ function global:Install-PwrPackage {
 	$AssetName = "doxygen-$Version.windows.x64.bin.zip"
 	$Params = @{
 		AssetName = $AssetName
-		AssetIdentifier = $Tag
 		AssetURL = "https://www.doxygen.nl/files/$AssetName"
 	}
 	Install-BuildTool @Params

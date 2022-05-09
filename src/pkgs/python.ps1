@@ -19,7 +19,6 @@ function global:Install-PwrPackage {
 	$AssetName = "python-$Version-embed-amd64.zip"
 	$Params = @{
 		AssetName = $AssetName
-		AssetIdentifier = $Tag
 		AssetURL = "https://www.python.org/ftp/python/$Version/$AssetName"
 	}
 	Install-BuildTool @Params

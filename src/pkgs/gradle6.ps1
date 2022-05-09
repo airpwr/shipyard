@@ -23,7 +23,6 @@ function global:Install-PwrPackage {
 	$AssetName = "gradle-$Version-bin.zip"
 	$Params = @{
 		AssetName = $AssetName
-		AssetIdentifier = $Tag
 		AssetURL = "https://services.gradle.org/distributions/$AssetName"
 	}
 	Install-BuildTool @Params

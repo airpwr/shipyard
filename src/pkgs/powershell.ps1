@@ -4,10 +4,10 @@ $global:PwrPackageConfig = @{
 
 function global:Install-PwrPackage {
 	$Params = @{
-		Owner = 'PowerShell'
-		Repo = 'PowerShell'
+		Owner        = 'PowerShell'
+		Repo         = 'PowerShell'
 		AssetPattern = '^PowerShell-.+-win-x64\.zip$'
-		TagPattern = "^v([0-9]+)\.([0-9]+)\.([0-9]+)$"
+		TagPattern   = '^v([0-9]+)\.([0-9]+)\.([0-9]+)$'
 	}
 	$Asset = Get-GitHubRelease @Params
 	$PwrPackageConfig.UpToDate = -not $Asset.Version.LaterThan($PwrPackageConfig.Latest)
@@ -17,8 +17,7 @@ function global:Install-PwrPackage {
 	}
 	$Params = @{
 		AssetName = $Asset.Name
-		AssetIdentifier = $Asset.Identifier
-		AssetURL = $Asset.URL
+		AssetURL  = $Asset.URL
 	}
 	Install-BuildTool @Params
 	Write-PackageVars @{

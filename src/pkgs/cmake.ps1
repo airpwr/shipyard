@@ -17,7 +17,6 @@ function global:Install-PwrPackage {
 	}
 	$Params = @{
 		AssetName = $Asset.Name
-		AssetIdentifier = $Asset.Identifier
 		AssetURL = $Asset.URL
 	}
 	Install-BuildTool @Params
