@@ -1,6 +1,6 @@
 $global:PwrPackageConfig = @{
 	Name    = 'vs-buildtools'
-	Version = '17.3.2' # see https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-history
+	Version = '17.2.3' # see https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-history
 	Nonce   = $true
 }
 
@@ -24,29 +24,33 @@ function global:Install-PwrPackage {
 		Replace('reg query "%1\Microsoft\VisualStudio\SxS\VC7" /v "14.0"', 'echo 14.0 X %~dp0..\..\..\..\..\..\..\..\Microsoft Visual Studio 14.0\VC\'))
 	Write-Output 'Done Hacking'
 	$PwrPackageVars = @{}
-	foreach ($config in @(@{Name = 'default'}, @{Name = 'msvc-140'; Ver = '14.0'}, @{Name = 'msvc-141'; Ver = '14.16'}, @{Name = 'msvc-142'; Ver = '14.29'})) {
-		Write-Output "Evaluating variables for configuration $($config.name)"
-		$vars = 'WindowsSdkVerBinPath', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH'
-		foreach ($v in $vars) {
-			Clear-Item "env:$v" -Force -ErrorAction SilentlyContinue
-		}
-		Write-Output 'Env Cleared'
-		$path = 'C:\windows;C:\windows\system32;C:\windows\system32\WindowsPowerShell\v1.0'
-		$env:path = $path
-		$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" $(if ($config.name -ne 'default') { "-vcvars_ver=$($config.ver)" }) -arch=x64 -host_arch=x64"
-		Write-Output 'Starting Dev Setup'
-		$vsenv = cmd /S /C "$vsSetup && set"
-		Write-Output $vsenv
-		$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split('='); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1] } }
-		$map = @{}
-		foreach ($var in $vars) {
-			$map.$var = (Get-Item "env:$var" -ErrorAction SilentlyContinue).value
-		}
-		$map.path = $map.path.Replace($path, '')
-		if ($config.name -eq 'default') {
-			$PwrPackageVars.env = $map
-		} else {
-			$PwrPackageVars."$($config.name)" = @{env = $map}
+	foreach ($msvc in @(@{Name = 'msvc143'; Ver = '14.32'}, @{Name = 'msvc140'; Ver = '14.0'}, @{Name = 'msvc141'; Ver = '14.16'}, @{Name = 'msvc142'; Ver = '14.29'})) {
+		foreach ($arch in @('x86', 'amd64', 'arm', 'arm64')) {
+			if (($msvc -eq 'msvc140') -and ($arch -eq 'arm64')) {
+				continue # not supported
+			}
+			Write-Output "Evaluating variables for configuration $($msvc.name) on arch $arch"
+			$vars = 'WindowsSdkVerBinPath', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH'
+			foreach ($v in $vars) {
+				Clear-Item "env:$v" -Force -ErrorAction SilentlyContinue
+			}
+			Write-Output 'Env Cleared'
+			$path = 'C:\windows;C:\windows\system32;C:\windows\system32\WindowsPowerShell\v1.0'
+			$env:path = $path
+			$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" -vcvars_ver=$($msvc.ver) -arch=$arch -host_arch=amd64"
+			Write-Output 'Starting Dev Setup'
+			$vsenv = cmd /S /C "$vsSetup && set"
+			Write-Output $vsenv
+			$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split('='); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1] } }
+			$map = @{}
+			foreach ($var in $vars) {
+				$map.$var = (Get-Item "env:$var" -ErrorAction SilentlyContinue).value
+			}
+			$map.path = $map.path.Replace($path, '')
+			if (($msvc.name -eq 'msvc143') -and ($arch -eq 'x86')) {
+				$PwrPackageVars.env = $map
+			}
+			$PwrPackageVars."$($msvc.name)-$arch" = @{env = $map}
 		}
 	}
 	Write-PackageVars $PwrPackageVars
@@ -54,10 +58,19 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	foreach ($config in @('default', 'msvc-140', 'msvc-141', 'msvc-142')) {
-		Write-Host "Testing config $config"
-		pwr sh "file:///\pkg < $config"
-		cl
-		pwr exit
+	Write-Host "--- Testing config default ---"
+	pwr sh "file:///\pkg"
+	cl
+	pwr exit
+	foreach ($msvc in @('msvc143', 'msvc140', 'msvc141', 'msvc142')) {
+		foreach ($arch in @('x86', 'amd64', 'arm', 'arm64')) {
+			if (($msvc -eq 'msvc140') -and ($arch -eq 'arm64')) {
+				continue # not supported
+			}
+			Write-Host "--- Testing config $msvc-$arch ---"
+			pwr sh "file:///\pkg < $msvc-$arch"
+			cl
+			pwr exit
+		}
 	}
 }
