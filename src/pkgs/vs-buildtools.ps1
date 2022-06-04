@@ -11,9 +11,9 @@ function global:Install-PwrPackage {
 	Invoke-WebRequest -UseBasicParsing 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile 'vs_buildtools.exe'
 	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 --add Microsoft.VisualStudio.Component.Windows10SDK.19041 --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 --remove Microsoft.VisualStudio.Component.Windows81SDK || IF "%ERRORLEVEL%"=="3010" EXIT 0'
 	Write-Output 'Done Installing'
-	robocopy /MIR /MT:32 "${env:ProgramFiles(x86)}\Microsoft Visual Studio" '\pkg\Microsoft Visual Studio' | Out-Null
-	robocopy /MIR /MT:32 "${env:ProgramFiles(x86)}\Windows Kits" '\pkg\Windows Kits' | Out-Null
-	robocopy /MIR /MT:32 "${env:ProgramFiles(x86)}\Microsoft Visual Studio 14.0" '\pkg\Microsoft Visual Studio 14.0' | Out-Null
+	Move-Item -Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio" -Destination '\pkg\Microsoft Visual Studio'
+	Move-Item -Path "${env:ProgramFiles(x86)}\Windows Kits" -Destination '\pkg\Windows Kits'
+	Move-Item -Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio 14.0" -Destination '\pkg\Microsoft Visual Studio 14.0'
 	[System.IO.File]::WriteAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat',
 		[System.IO.File]::ReadAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat').
 		Replace('reg query "%1\Microsoft\Microsoft SDKs\Windows\v10.0" /v "InstallationFolder"', 'echo InstallationFolder X %~dp0..\..\..\..\..\..\..\Windows Kits\10\').
