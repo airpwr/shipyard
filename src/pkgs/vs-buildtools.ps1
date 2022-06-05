@@ -6,20 +6,11 @@ $global:PwrPackageConfig = @{
 
 function global:Install-PwrPackage {
 	$oldPath = $env:Path
-	mkdir '\pkg' -Force | Out-Null
-	[Environment]::SetEnvironmentVariable('ProgramFiles(x86)', '\pkg', 'Machine')
-	Write-Host (Resolve-Path ${env:ProgramFiles(x86)})
-	Write-Host (Resolve-Path '\pkg')
+	mkdir '\pkg\Microsoft Visual Studio\2022\BuildTools' -Force | Out-Null
 	Invoke-WebRequest -UseBasicParsing 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile 'vs_buildtools.exe'
-	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 --add Microsoft.VisualStudio.Component.Windows10SDK.19041 --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 --remove Microsoft.VisualStudio.Component.Windows81SDK || IF "%ERRORLEVEL%"=="3010" EXIT 0'
+	cmd /S /C 'start /w vs_buildtools.exe --wait --norestart --nocache install --installPath "D:\pkg\Microsoft Visual Studio\2022\BuildTools" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 --add Microsoft.VisualStudio.Component.Windows10SDK.19041 || IF "%ERRORLEVEL%"=="3010" EXIT 0'
 	Write-Output 'Done Installing'
-	mkdir '\empty' -Force | Out-Null
-	Get-ChildItem -Path ${env:ProgramFiles(x86)} -Directory -Exclude 'Microsoft Visual Studio','Windows Kits','Microsoft Visual Studio 14.0'|
-	ForEach-Object {
-		Write-Host "Removing $($_.FullName)"
-		robocopy /MIR /MT:32 '\empty' $_.FullName
-		Remove-Item $_.FullName -Force
-	}
+	Get-ChildItem -Path '\pkg' -Directory -Recurse
 	[System.IO.File]::WriteAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat',
 		[System.IO.File]::ReadAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat').
 		Replace('reg query "%1\Microsoft\Microsoft SDKs\Windows\v10.0" /v "InstallationFolder"', 'echo InstallationFolder X %~dp0..\..\..\..\..\..\..\Windows Kits\10\').
@@ -32,7 +23,7 @@ function global:Install-PwrPackage {
 	$PwrPackageVars = @{}
 	foreach ($msvc in @(@{Name = 'msvc143'; Ver = '14.32'}, @{Name = 'msvc140'; Ver = '14.0'}, @{Name = 'msvc141'; Ver = '14.16'}, @{Name = 'msvc142'; Ver = '14.29'})) {
 		foreach ($arch in @('x86', 'amd64', 'arm', 'arm64')) {
-			if (($msvc -eq 'msvc140') -and ($arch -eq 'arm64')) {
+			if (($msvc.name -eq 'msvc140') -and ($arch -eq 'arm64')) {
 				continue # not supported
 			}
 			Write-Output "Evaluating variables for configuration $($msvc.name) on arch $arch"
