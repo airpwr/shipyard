@@ -31,7 +31,11 @@ function Invoke-PwrPackageScan {
 
 function Invoke-DockerPush($name, $version) {
 	$tag = "airpower/shipyard:$name-$version"
-	& docker build -f Dockerfile -t $tag \pkg
+	if (Get-Command 'Build-DockerPwrPackage' -errorAction SilentlyContinue) {
+		Build-DockerPwrPackage $tag
+	} else {
+		& docker build -f Dockerfile -t $tag \pkg
+	}
 	& docker image push $tag
 }
 
