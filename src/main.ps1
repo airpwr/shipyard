@@ -31,8 +31,9 @@ function Invoke-PwrPackageScan {
 
 function Invoke-DockerPush($name, $version) {
 	$tag = "airpower/shipyard:$name-$version"
-	if (Get-Command 'Build-DockerPwrPackage' -errorAction SilentlyContinue) {
-		Build-DockerPwrPackage $tag
+	if (Get-Command 'Invoke-DockerBuild' -errorAction SilentlyContinue) {
+		Write-Host 'Using custom docker build'
+		Invoke-DockerBuild $tag
 	} else {
 		& docker build -f Dockerfile -t $tag \pkg
 	}
