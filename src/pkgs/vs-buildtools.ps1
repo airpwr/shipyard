@@ -7,7 +7,9 @@ $global:PwrPackageConfig = @{
 function global:Install-PwrPackage {
 	$oldPath = $env:Path
 	mkdir '\pkg' -Force | Out-Null
-	[Environment]::SetEnvironmentVariable('ProgramFiles(x86)', '\pkg', 'User')
+	[Environment]::SetEnvironmentVariable('ProgramFiles(x86)', '\pkg', 'Machine')
+	Write-Host (Resolve-Path ${env:ProgramFiles(x86)})
+	Write-Host (Resolve-Path '\pkg')
 	Invoke-WebRequest -UseBasicParsing 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile 'vs_buildtools.exe'
 	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 --add Microsoft.VisualStudio.Component.Windows10SDK.19041 --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 --remove Microsoft.VisualStudio.Component.Windows81SDK || IF "%ERRORLEVEL%"=="3010" EXIT 0'
 	Write-Output 'Done Installing'
