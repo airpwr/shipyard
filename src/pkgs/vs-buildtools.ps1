@@ -6,14 +6,18 @@ $global:PwrPackageConfig = @{
 
 function global:Install-PwrPackage {
 	$oldPath = $env:Path
-	mkdir '\vs' -Force | Out-Null
-	[Environment]::SetEnvironmentVariable('ProgramFiles(x86)', '\vs', 'User')
+	mkdir '\pkg' -Force | Out-Null
+	[Environment]::SetEnvironmentVariable('ProgramFiles(x86)', '\pkg', 'User')
 	Invoke-WebRequest -UseBasicParsing 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile 'vs_buildtools.exe'
 	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 --add Microsoft.VisualStudio.Component.Windows10SDK.19041 --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 --remove Microsoft.VisualStudio.Component.Windows81SDK || IF "%ERRORLEVEL%"=="3010" EXIT 0'
 	Write-Output 'Done Installing'
-	Move-Item -Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio" -Destination '\pkg\Microsoft Visual Studio'
-	Move-Item -Path "${env:ProgramFiles(x86)}\Windows Kits" -Destination '\pkg\Windows Kits'
-	Move-Item -Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio 14.0" -Destination '\pkg\Microsoft Visual Studio 14.0'
+	mkdir '\empty' -Force | Out-Null
+	Get-ChildItem -Path ${env:ProgramFiles(x86)} -Directory -Exclude 'Microsoft Visual Studio','Windows Kits','Microsoft Visual Studio 14.0'|
+	ForEach-Object {
+		Write-Host "Removing $($_.FullName)"
+		robocopy /MIR /MT:32 '\empty' $_.FullName
+		Remove-Item $_.FullName -Force
+	}
 	[System.IO.File]::WriteAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat',
 		[System.IO.File]::ReadAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat').
 		Replace('reg query "%1\Microsoft\Microsoft SDKs\Windows\v10.0" /v "InstallationFolder"', 'echo InstallationFolder X %~dp0..\..\..\..\..\..\..\Windows Kits\10\').
