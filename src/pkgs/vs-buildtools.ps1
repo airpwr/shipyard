@@ -6,14 +6,14 @@ $global:PwrPackageConfig = @{
 
 function global:Install-PwrPackage {
 	$oldPath = $env:Path
-	mkdir '\vs' -Force | Out-Null
-	[Environment]::SetEnvironmentVariable('ProgramFiles(x86)', '\vs', 'User')
 	Invoke-WebRequest -UseBasicParsing 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile 'vs_buildtools.exe'
-	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 --add Microsoft.VisualStudio.Component.Windows10SDK.19041 --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 --remove Microsoft.VisualStudio.Component.Windows81SDK || IF "%ERRORLEVEL%"=="3010" EXIT 0'
+	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 --remove Microsoft.VisualStudio.Component.Windows10SDK.14393  --remove Microsoft.VisualStudio.Component.Windows10SDK.19041 || IF "%ERRORLEVEL%"=="3010" EXIT 0'
 	Write-Output 'Done Installing'
-	New-Item -Type Junction -Target "${env:ProgramFiles(x86)}\Microsoft Visual Studio" -Path '\pkg\Microsoft Visual Studio'
-	New-Item -Type Junction -Target "${env:ProgramFiles(x86)}\Windows Kits" -Path '\pkg\Windows Kits'
-	New-Item -Type Junction -Target "${env:ProgramFiles(x86)}\Microsoft Visual Studio 14.0" -Path '\pkg\Microsoft Visual Studio 14.0'
+	mkdir "${env:ProgramFiles(x86)}\pkg" -Force | Out-Null
+	New-Item -Type Junction -Target "${env:ProgramFiles(x86)}\pkg" -Path '\pkg'
+	Move-Item -Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio" -Destination "${env:ProgramFiles(x86)}\pkg\Microsoft Visual Studio"
+	Move-Item -Path "${env:ProgramFiles(x86)}\Windows Kits" -Destination "${env:ProgramFiles(x86)}\pkg\Windows Kits"
+	Move-Item -Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio 14.0" -Destination "${env:ProgramFiles(x86)}\pkg\Microsoft Visual Studio 14.0"
 	[System.IO.File]::WriteAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat',
 		[System.IO.File]::ReadAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat').
 		Replace('reg query "%1\Microsoft\Microsoft SDKs\Windows\v10.0" /v "InstallationFolder"', 'echo InstallationFolder X %~dp0..\..\..\..\..\..\..\Windows Kits\10\').
@@ -26,11 +26,11 @@ function global:Install-PwrPackage {
 	$PwrPackageVars = @{}
 	foreach ($msvc in @(@{Name = 'msvc143'; Ver = '14.32'}, @{Name = 'msvc140'; Ver = '14.0'}, @{Name = 'msvc141'; Ver = '14.16'}, @{Name = 'msvc142'; Ver = '14.29'})) {
 		foreach ($arch in @('x86', 'amd64', 'arm', 'arm64')) {
-			if (($msvc -eq 'msvc140') -and ($arch -eq 'arm64')) {
+			if (($msvc.name -eq 'msvc140') -and ($arch -eq 'arm64')) {
 				continue # not supported
 			}
 			Write-Output "Evaluating variables for configuration $($msvc.name) on arch $arch"
-			$vars = 'WindowsSdkVerBinPath', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH'
+			$vars = 'WindowsSdkBinPath', 'WindowsSdkVerBinPath', 'WindowsSDKVersion', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VSCMD_ARG_app_plat', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH', 'VisualStudioVersion'
 			foreach ($v in $vars) {
 				Clear-Item "env:$v" -Force -ErrorAction SilentlyContinue
 			}
@@ -40,11 +40,11 @@ function global:Install-PwrPackage {
 			$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" -vcvars_ver=$($msvc.ver) -arch=$arch -host_arch=amd64"
 			Write-Output 'Starting Dev Setup'
 			$vsenv = cmd /S /C "$vsSetup && set"
-			Write-Output $vsenv
 			$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split('='); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1] } }
 			$map = @{}
 			foreach ($var in $vars) {
-				$map.$var = (Get-Item "env:$var" -ErrorAction SilentlyContinue).value
+				$map.$var = Get-Item "env:$var" -ErrorAction SilentlyContinue | ForEach-Object { $_.value.Replace("${env:ProgramFiles(x86)}", '\pkg') }
+				Write-Output "  $var=$($map.$var)"
 			}
 			$map.path = $map.path.Replace($path, '')
 			if (($msvc.name -eq 'msvc143') -and ($arch -eq 'x86')) {
@@ -58,8 +58,8 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	Write-Host "--- Testing config default ---"
-	pwr sh "file:///\pkg"
+	Write-Host '--- Testing config default ---'
+	pwr sh 'file:///\pkg'
 	cl
 	pwr exit
 	foreach ($msvc in @('msvc143', 'msvc140', 'msvc141', 'msvc142')) {
@@ -73,4 +73,9 @@ function global:Test-PwrPackageInstall {
 			pwr exit
 		}
 	}
+}
+
+function global:Invoke-DockerBuild($tag) {
+	Copy-Item Dockerfile.vs-buildtools -Destination "${env:ProgramFiles(x86)}\pkg\Dockerfile"
+	& docker build -t $tag "${env:ProgramFiles(x86)}\pkg"
 }
