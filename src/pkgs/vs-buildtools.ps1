@@ -76,7 +76,6 @@ function global:Test-PwrPackageInstall {
 }
 
 function global:Invoke-DockerBuild($tag) {
-	Copy-Item Dockerfile.vs-buildtools -Destination "${env:ProgramFiles(x86)}\pkg\Dockerfile"
-	Copy-Item '\pkg\.pwr' -Destination "${env:ProgramFiles(x86)}\pkg\.pwr"
-	& docker build -t $tag "${env:ProgramFiles(x86)}\pkg"
+	Copy-Item Dockerfile -Destination "${env:ProgramFiles(x86)}\Dockerfile.vs-buildtools"
+	& docker build -f "${env:ProgramFiles(x86)}\Dockerfile.vs-buildtools" -t $tag "${env:ProgramFiles(x86)}\pkg"
 }
