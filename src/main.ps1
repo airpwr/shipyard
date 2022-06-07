@@ -61,12 +61,17 @@ function Invoke-PwrInit {
 function Invoke-PwrScript($pkg) {
 	& $pkg
 	Invoke-PwrInit
-	Install-PwrPackage
+	if (Get-Command 'Invoke-DockerBuild' -ErrorAction SilentlyContinue) {
+		Write-Host 'Using custom docker build'
+		Invoke-DockerBuild 'pwr-package'
+	} else {
+		Install-PwrPackage
+		if (-not $PwrPackageConfig.UpToDate) {
+			Test-PwrPackageInstall
+		}
+	}
 	# pwr shell $name-$version
 	Write-Output "shipyard: $($PwrPackageConfig.Name) v$($PwrPackageConfig.Version) is $(if ($PwrPackageConfig.UpToDate) { 'UP-TO-DATE' } else { 'OUT-OF-DATE' })"
-	if (-not $PwrPackageConfig.UpToDate) {
-		Test-PwrPackageInstall
-	}
 }
 
 function Save-WorkflowMatrix {

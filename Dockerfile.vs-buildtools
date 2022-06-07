@@ -1,0 +1,6 @@
+# escape=`
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
+
+SHELL ["powershell", "-command"]
+COPY vs-buildtools.ps1 vs-buildtools.ps1
+RUN .\vs-buildtools.ps1; Install-PwrPackage; Test-PwrPackageInstall
