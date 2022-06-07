@@ -57,19 +57,24 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	# Write-Host '--- Testing config default ---'
-	# pwr sh 'file:///\pkg'
-	# cl
-	# pwr exit
-	# foreach ($msvc in @('msvc143', 'msvc140', 'msvc141', 'msvc142')) {
-	# 	foreach ($arch in @('x86', 'amd64', 'arm', 'arm64')) {
-	# 		if (($msvc -eq 'msvc140') -and ($arch -eq 'arm64')) {
-	# 			continue # not supported
-	# 		}
-	# 		Write-Host "--- Testing config $msvc-$arch ---"
-	# 		pwr sh "file:///\pkg < $msvc-$arch"
-	# 		cl
-	# 		pwr exit
-	# 	}
-	# }
+	Write-Host '--- Testing config default ---'
+	pwr sh 'file:///\pkg'
+	cl
+	pwr exit
+	foreach ($msvc in @('msvc143', 'msvc140', 'msvc141', 'msvc142')) {
+		foreach ($arch in @('x86', 'amd64', 'arm', 'arm64')) {
+			if (($msvc -eq 'msvc140') -and ($arch -eq 'arm64')) {
+				continue # not supported
+			}
+			Write-Host "--- Testing config $msvc-$arch ---"
+			pwr sh "file:///\pkg < $msvc-$arch"
+			cl
+			pwr exit
+		}
+	}
+}
+
+function global:Invoke-DockerBuild($tag) {
+	Copy-Item Dockerfile -Destination "${env:ProgramFiles(x86)}\Dockerfile.vs-buildtools"
+	& docker build -f "${env:ProgramFiles(x86)}\Dockerfile.vs-buildtools" -t $tag "${env:ProgramFiles(x86)}\pkg"
 }

@@ -64,4 +64,5 @@ jobs:
       if: ${{ github.ref == 'refs/heads/main' && steps.pkg.outputs.up-to-date == 'False'}}
       run: |
         . .\src\main.ps1
+        & '${{ matrix.package }}'
         Invoke-DockerPush ${{ steps.pkg.outputs.name }} ${{ steps.pkg.outputs.version }}
