@@ -3,7 +3,7 @@ name: Build Packages
 on:
   push:
   schedule:
-  - cron: '9 2 */10 * *'
+  - cron: '9 2 */4 * *'
   workflow_dispatch:
 
 jobs:
