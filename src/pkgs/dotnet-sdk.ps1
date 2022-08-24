@@ -1,11 +1,11 @@
 $global:PwrPackageConfig = @{
-	Name = 'dotnet-runtime'
+	Name = 'dotnet-sdk'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'dotnet'
-		Repo = 'runtime'
+		Repo = 'sdk'
 		TagPattern = '^v([0-9]+)\.([0-9]+)\.([0-9]+)$'
 	}
 	$Latest = Get-GitHubTag @Params
@@ -17,7 +17,7 @@ function global:Install-PwrPackage {
 	$Tag = $Latest.name
 	$Version = $Tag.SubString(1)
 	$AssetName = "dotnet-$Version.zip"
-	$Resp = Invoke-WebRequest "https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-$Version-windows-x64-binaries"
+	$Resp = Invoke-WebRequest "https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-$Version-windows-x64-binaries"
 	if (-not ($Resp.Content -match '.*"(https://download\..*?)".*')) {
 		Write-Error "failed to match the url pattern"
 		return
