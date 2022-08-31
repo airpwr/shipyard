@@ -30,6 +30,7 @@ function global:Install-PwrPackage {
 	Write-PackageVars @{
 		env = @{
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'dotnet.exe' | Select-Object -First 1).DirectoryName
+			dotnet_root = '\pkg'
 		}
 	}
 }
