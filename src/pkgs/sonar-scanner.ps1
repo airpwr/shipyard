@@ -3,19 +3,21 @@ $global:PwrPackageConfig = @{
 }
 
 function global:Install-PwrPackage {
-	$Releases = (Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/SonarSource/sonar-scanner-cli/releases?per_page=100").Content | ConvertFrom-Json
-	$Latest = Find-LatestTag $Releases 'tag_name' '^([0-9]+)\.([0-9]+)\.?([0-9]+)?(\.[0-9]+)?$'
-	if (!$Latest) {
-		Write-Error "Failed to find a GitHub Release for SonarSource sonar-scanner-cli"
+	$Params = @{
+		Owner = 'SonarSource'
+		Repo = 'sonar-scanner-cli'
+		TagPattern = '^([0-9]+)\.([0-9]+)\.?([0-9]+)?(\.[0-9]+)?$'
 	}
+	$Latest = Get-GitHubTag @Params
 	$PwrPackageConfig.UpToDate = -not $Latest.Version.LaterThan($PwrPackageConfig.Latest)
 	$PwrPackageConfig.Version = $Latest.Version.ToString()
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
+	$Tag = $Latest.name
 	$Params = @{
 		AssetName = 'sonar-scanner.zip'
-		AssetURL = "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$($Latest.Item.tag_name).zip"
+		AssetURL = "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$Tag.zip"
 	}
 	Install-BuildTool @Params
 	Write-PackageVars @{

@@ -30,7 +30,7 @@ function Invoke-PwrPackageScan {
 }
 
 function Invoke-DockerPush($name, $version) {
-	$tag = "airpower/shipyard:$name-$version"
+	$tag = "airpower/shipyard:$name-$($version.Replace('+', '_'))"
 	if (Get-Command 'Invoke-DockerBuild' -errorAction SilentlyContinue) {
 		Write-Host 'Using custom docker build'
 		Invoke-DockerBuild $tag
