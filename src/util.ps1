@@ -98,7 +98,7 @@ function Get-GitHubRelease {
 		[Parameter(Mandatory=$true)][string]$AssetPattern,
 		[Parameter(Mandatory=$true)][string]$TagPattern
 	)
-	$Releases = (Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/$Owner/$Repo/releases?per_page=100").Content | ConvertFrom-Json
+	$Releases = (Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/$Owner/$Repo/releases/latest").Content | ConvertFrom-Json
 	$Latest = Find-LatestTag $Releases 'tag_name' $TagPattern
 	if ($Latest) {
 		foreach ($Asset in $Latest.item.assets) {
