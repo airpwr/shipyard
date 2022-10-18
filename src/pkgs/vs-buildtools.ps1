@@ -1,13 +1,13 @@
 $global:PwrPackageConfig = @{
 	Name    = 'vs-buildtools'
-	Version = '17.2.3' # see https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-history
+	Version = '17.2.9' # see https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
 	Nonce   = $true
 }
 
 function global:Install-PwrPackage {
 	$oldPath = $env:Path
-	Invoke-WebRequest -UseBasicParsing 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile 'vs_buildtools.exe'
-	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 --remove Microsoft.VisualStudio.Component.Windows10SDK.14393  --remove Microsoft.VisualStudio.Component.Windows10SDK.19041 || IF "%ERRORLEVEL%"=="3010" EXIT 0'
+	Invoke-WebRequest -UseBasicParsing 'https://download.visualstudio.microsoft.com/download/pr/d66ab022-583e-4b0b-998b-d60f5173aa4e/569d70493499d754edca8dee5d0c2a16dbfc17b9382e68fbc1e07f29061d8d38/vs_BuildTools.exe' -OutFile 'vs_buildtools.exe'
+	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add "Microsoft.VisualStudio.Workload.VCTools;includeRecommended" --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 || IF "%ERRORLEVEL%"=="3010" EXIT 0'
 	Write-Output 'Done Installing'
 	mkdir "${env:ProgramFiles(x86)}\pkg" -Force | Out-Null
 	New-Item -Type Junction -Target "${env:ProgramFiles(x86)}\pkg" -Path '\pkg'
@@ -25,7 +25,7 @@ function global:Install-PwrPackage {
 	Write-Output 'Done Hacking'
 	$PwrPackageVars = @{}
 	foreach ($msvc in @(@{Name = 'msvc143'; Ver = '14.32'}, @{Name = 'msvc140'; Ver = '14.0'}, @{Name = 'msvc141'; Ver = '14.16'}, @{Name = 'msvc142'; Ver = '14.29'})) {
-		foreach ($arch in @('x86', 'amd64', 'arm', 'arm64')) {
+		foreach ($arch in @('x86', 'amd64')) {
 			if (($msvc.name -eq 'msvc140') -and ($arch -eq 'arm64')) {
 				continue # not supported
 			}
@@ -63,7 +63,7 @@ function global:Test-PwrPackageInstall {
 	cl
 	pwr exit
 	foreach ($msvc in @('msvc143', 'msvc140', 'msvc141', 'msvc142')) {
-		foreach ($arch in @('x86', 'amd64', 'arm', 'arm64')) {
+		foreach ($arch in @('x86', 'amd64')) {
 			if (($msvc -eq 'msvc140') -and ($arch -eq 'arm64')) {
 				continue # not supported
 			}
