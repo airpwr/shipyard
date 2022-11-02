@@ -90,7 +90,7 @@ function global:Install-PwrPackage {
 			$PwrPackageVars."$($msvc.name)-$arch" = @{env = $map}
 		}
 	}
-	Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits" '10.0.*' -Recurse -Exclude $PwrPackageVars.env.UCRTVersion | Remove-Item -Recurse -Force
+	Get-ChildItem '\pkg\Windows Kits' '10.0.*' -Recurse -Exclude $PwrPackageVars.env.UCRTVersion | Remove-Item -Recurse -Force
 	Write-PackageVars $PwrPackageVars
 	$env:path = $oldPath
 }
