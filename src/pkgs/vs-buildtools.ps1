@@ -1,19 +1,54 @@
 $global:PwrPackageConfig = @{
-	Name    = 'vs-buildtools'
-	Version = '17.2.9' # see https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
-	Nonce   = $true
+	Name = 'vs-buildtools'
 }
+
+$global:MSVCVersions = @(
+	@{Name = 'msvc143'; Ver = '14.32'; Archs = @('x86', 'amd64', 'arm', 'arm64')},
+	@{Name = 'msvc142'; Ver = '14.29'; Archs = @('x86', 'amd64')},
+	@{Name = 'msvc141'; Ver = '14.16'; Archs = @('x86', 'amd64')},
+	@{Name = 'msvc140'; Ver = '14.0';  Archs = @('x86', 'amd64', 'arm')}
+)
 
 function global:Install-PwrPackage {
 	$oldPath = $env:Path
-	Invoke-WebRequest -UseBasicParsing 'https://download.visualstudio.microsoft.com/download/pr/d66ab022-583e-4b0b-998b-d60f5173aa4e/569d70493499d754edca8dee5d0c2a16dbfc17b9382e68fbc1e07f29061d8d38/vs_BuildTools.exe' -OutFile 'vs_buildtools.exe'
-	cmd /S /C 'start /w vs_buildtools.exe --quiet --wait --norestart --nocache --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools" --add "Microsoft.VisualStudio.Workload.VCTools;includeRecommended" --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64 --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 --add Microsoft.VisualStudio.Component.VC.140 || IF "%ERRORLEVEL%"=="3010" EXIT 0'
+	# See https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
+	(Invoke-WebRequest 'https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history').Content -split '</tr>' | ForEach {
+		if ($_ -match '(?s)<tr\b.+\bLTSC\b.+>([0-9]+\.[0-9]+\.[0-9]+)</.+ href="([^"]+/vs_BuildTools\.exe)"') {
+			$NewVersion = [SemanticVersion]::new($Matches[1])
+			if (-not $Version -or $NewVersion.LaterThan($Version)) {
+				$Version = $NewVersion
+				$URI = $Matches[2]
+			}
+		}
+	}
+	if (-not $Version) {
+		Write-Error 'No Visual Studio Build Tools found on website'
+	}
+	$PwrPackageConfig.Version = $Version.ToString()
+	$PwrPackageConfig.UpToDate = -not $Version.LaterThan($PwrPackageConfig.Latest)
+	if ($PwrPackageConfig.UpToDate) {
+		return
+	}
+	Write-Output "Installing Visual Studio Build Tools v$($PwrPackageConfig.Version)..."
+	Invoke-WebRequest -UseBasicParsing $URI -OutFile 'vs_buildtools.exe'
+	$Options = @(
+		"--add Microsoft.VisualStudio.Workload.VCTools",
+		"--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+		"--add Microsoft.VisualStudio.Component.VC.Tools.ARM",
+		"--add Microsoft.VisualStudio.Component.VC.Tools.ARM64",
+		"--add Microsoft.VisualStudio.Component.VC.Tools.ARM64EC",
+		"--add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64",
+		"--add Microsoft.VisualStudio.Component.VC.v141.x86.x64",
+		"--add Microsoft.VisualStudio.Component.VC.140"
+	)
+	$setup = Start-Process ./vs_buildtools.exe "--quiet --wait --norestart --nocache --installPath `"%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools`" $($Options -join ' ')" -Wait -PassThru
+	if (-not $setup.ExitCode -in @(0, 3010)) {
+		Write-Error "Visual Studio Build Tools setup failed with error code $($setup.ExitCode)"
+	}
 	Write-Output 'Done Installing'
 	mkdir "${env:ProgramFiles(x86)}\pkg" -Force | Out-Null
 	New-Item -Type Junction -Target "${env:ProgramFiles(x86)}\pkg" -Path '\pkg'
-	Move-Item -Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio" -Destination "${env:ProgramFiles(x86)}\pkg\Microsoft Visual Studio"
-	Move-Item -Path "${env:ProgramFiles(x86)}\Windows Kits" -Destination "${env:ProgramFiles(x86)}\pkg\Windows Kits"
-	Move-Item -Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio 14.0" -Destination "${env:ProgramFiles(x86)}\pkg\Microsoft Visual Studio 14.0"
+	Move-Item "${env:ProgramFiles(x86)}\Microsoft Visual Studio*", "${env:ProgramFiles(x86)}\Windows Kits" "${env:ProgramFiles(x86)}\pkg\"
 	[System.IO.File]::WriteAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat',
 		[System.IO.File]::ReadAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat').
 		Replace('reg query "%1\Microsoft\Microsoft SDKs\Windows\v10.0" /v "InstallationFolder"', 'echo InstallationFolder X %~dp0..\..\..\..\..\..\..\Windows Kits\10\').
@@ -24,11 +59,8 @@ function global:Install-PwrPackage {
 		Replace('reg query "%1\Microsoft\VisualStudio\SxS\VC7" /v "14.0"', 'echo 14.0 X %~dp0..\..\..\..\..\..\..\..\Microsoft Visual Studio 14.0\VC\'))
 	Write-Output 'Done Hacking'
 	$PwrPackageVars = @{}
-	foreach ($msvc in @(@{Name = 'msvc143'; Ver = '14.32'}, @{Name = 'msvc140'; Ver = '14.0'}, @{Name = 'msvc141'; Ver = '14.16'}, @{Name = 'msvc142'; Ver = '14.29'})) {
-		foreach ($arch in @('x86', 'amd64')) {
-			if (($msvc.name -eq 'msvc140') -and ($arch -eq 'arm64')) {
-				continue # not supported
-			}
+	foreach ($msvc in $MSVCVersions) {
+		foreach ($arch in $msvc.Archs) {
 			Write-Output "Evaluating variables for configuration $($msvc.name) on arch $arch"
 			$vars = 'WindowsSdkBinPath', 'WindowsSdkVerBinPath', 'WindowsSDKVersion', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VSCMD_ARG_app_plat', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH', 'VisualStudioVersion'
 			foreach ($v in $vars) {
@@ -47,12 +79,18 @@ function global:Install-PwrPackage {
 				Write-Output "  $var=$($map.$var)"
 			}
 			$map.path = $map.path.Replace($path, '')
-			if (($msvc.name -eq 'msvc143') -and ($arch -eq 'x86')) {
-				$PwrPackageVars.env = $map
+			if ($MSVCVersions.IndexOf($msvc) -eq 0) {
+				$PwrPackageVars.$arch = @{env = $map}
+				if ($msvc.Archs.IndexOf($arch) -eq 0) {
+					$PwrPackageVars.env = $map
+				}
+			} elseif ($msvc.Archs.IndexOf($arch) -eq 0) {
+				$PwrPackageVars."$($msvc.name)" = @{env = $map}
 			}
 			$PwrPackageVars."$($msvc.name)-$arch" = @{env = $map}
 		}
 	}
+	Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits" '10.0.*' -Recurse -Exclude $PwrPackageVars.env.UCRTVersion | Remove-Item -Recurse -Force
 	Write-PackageVars $PwrPackageVars
 	$env:path = $oldPath
 }
@@ -62,13 +100,10 @@ function global:Test-PwrPackageInstall {
 	pwr sh 'file:///\pkg'
 	cl
 	pwr exit
-	foreach ($msvc in @('msvc143', 'msvc140', 'msvc141', 'msvc142')) {
-		foreach ($arch in @('x86', 'amd64')) {
-			if (($msvc -eq 'msvc140') -and ($arch -eq 'arm64')) {
-				continue # not supported
-			}
-			Write-Host "--- Testing config $msvc-$arch ---"
-			pwr sh "file:///\pkg < $msvc-$arch"
+	foreach ($msvc in $MSVCVersions) {
+		foreach ($arch in $msvc.Archs) {
+			Write-Host "--- Testing config $($msvc.name)-$arch ---"
+			pwr sh "file:///\pkg < $($msvc.name)-$arch"
 			cl
 			pwr exit
 		}

@@ -21,7 +21,7 @@ jobs:
         . .\src\main.ps1
         Save-WorkflowMatrix
         $matrix = Get-Content .matrix
-        Write-Output "::set-output name=matrix::$matrix"
+        Write-Output "matrix=$matrix" | Out-File $env:GITHUB_OUTPUT utf8 -Append
 
   build:
     needs: init
@@ -43,9 +43,9 @@ jobs:
         iex (iwr 'https://raw.githubusercontent.com/airpwr/airpwr/main/src/install.ps1')
         . .\src\main.ps1
         Invoke-PwrScript '${{ matrix.package }}'
-        Write-Output "::set-output name=up-to-date::$($true -eq $PwrPackageConfig.UpToDate)"
-        Write-Output "::set-output name=name::$($PwrPackageConfig.Name)"
-        Write-Output "::set-output name=version::$($PwrPackageConfig.Version)"
+        Write-Output "up-to-date=$($true -eq $PwrPackageConfig.UpToDate)" | Out-File $env:GITHUB_OUTPUT utf8 -Append
+        Write-Output "name=$($PwrPackageConfig.Name)" | Out-File $env:GITHUB_OUTPUT utf8 -Append
+        Write-Output "version=$($PwrPackageConfig.Version)" | Out-File $env:GITHUB_OUTPUT utf8 -Append
 
     - name: Scan package
       if: ${{ steps.pkg.outputs.up-to-date == 'False'}}
