@@ -3,7 +3,7 @@ $global:PwrPackageConfig = @{
 }
 
 $global:MSVCVersions = @(
-	@{Name = 'msvc143'; Ver = '14.32'; Archs = @('x86', 'amd64', 'arm', 'arm64')},
+	@{Name = 'msvc143'; Archs = @('x86', 'amd64', 'arm', 'arm64')},
 	@{Name = 'msvc142'; Ver = '14.29'; Archs = @('x86', 'amd64')},
 	@{Name = 'msvc141'; Ver = '14.16'; Archs = @('x86', 'amd64')},
 	@{Name = 'msvc140'; Ver = '14.0';  Archs = @('x86', 'amd64', 'arm')}
@@ -42,7 +42,7 @@ function global:Install-PwrPackage {
 		"--add Microsoft.VisualStudio.Component.VC.140"
 	)
 	$setup = Start-Process ./vs_buildtools.exe "--quiet --wait --norestart --nocache --installPath `"%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools`" $($Options -join ' ')" -Wait -PassThru
-	if (-not $setup.ExitCode -in @(0, 3010)) {
+	if ($setup.ExitCode -NotIn @(0, 3010)) {
 		Write-Error "Visual Studio Build Tools setup failed with error code $($setup.ExitCode)"
 	}
 	Write-Output 'Done Installing'
@@ -62,17 +62,17 @@ function global:Install-PwrPackage {
 	foreach ($msvc in $MSVCVersions) {
 		foreach ($arch in $msvc.Archs) {
 			Write-Output "Evaluating variables for configuration $($msvc.name) on arch $arch"
-			$vars = 'WindowsSdkBinPath', 'WindowsSdkVerBinPath', 'WindowsSDKVersion', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VSCMD_ARG_app_plat', 'VCToolsVersion', 'INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH', 'VisualStudioVersion'
+			$vars = 'WindowsSdkBinPath', 'WindowsSdkVerBinPath', 'WindowsSDKVersion', 'VCToolsRedistDir', 'VSCMD_ARG_VCVARS_VER', 'UniversalCRTSdkDir', 'WindowsSdkDir', 'VCIDEInstallDir', 'VSCMD_ARG_HOST_ARCH', 'VSCMD_ARG_app_plat', 'VCToolsVersion', 'INCLUDE', 'EXTERNAL_INCLUDE', 'WindowsLibPath', 'VCToolsInstallDir', 'VCINSTALLDIR', 'VS170COMNTOOLS', 'LIBPATH', 'path', 'UCRTVersion', 'DevEnvDir', 'WindowsSDKLibVersion', 'LIB', 'VSCMD_VER', 'VSINSTALLDIR', 'VSCMD_ARG_TGT_ARCH', 'VisualStudioVersion'
 			foreach ($v in $vars) {
 				Clear-Item "env:$v" -Force -ErrorAction SilentlyContinue
 			}
 			Write-Output 'Env Cleared'
 			$path = 'C:\windows;C:\windows\system32;C:\windows\system32\WindowsPowerShell\v1.0'
 			$env:path = $path
-			$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" -vcvars_ver=$($msvc.ver) -arch=$arch -host_arch=amd64"
+			$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" $(if ($msvc.Ver) { "-vcvars_ver=$($msvc.Ver)" }) -arch=$arch -host_arch=amd64"
 			Write-Output 'Starting Dev Setup'
 			$vsenv = cmd /S /C "$vsSetup && set"
-			$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split('='); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1] } }
+			$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split('='); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1]; if ($s[1].Length > 2000) { Write-Warning "Long environment variable detected: $($s[0])" } } }
 			$map = @{}
 			foreach ($var in $vars) {
 				$map.$var = Get-Item "env:$var" -ErrorAction SilentlyContinue | ForEach-Object { $_.value.Replace("${env:ProgramFiles(x86)}", '\pkg') }
