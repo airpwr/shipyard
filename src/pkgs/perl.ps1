@@ -10,7 +10,6 @@ function global:Install-PwrPackage {
 			$AssetName = "strawberry-perl-$Version.zip"
 			$Params = @{
 				AssetName = $AssetName
-				AssetIdentifier = $Version
 				AssetURL = $Item.edition.portable.url
 			}
 			$v = [SemanticVersion]::new($Version, '^([0-9]+)\.([0-9]+)\.([0-9]+)')
@@ -20,11 +19,13 @@ function global:Install-PwrPackage {
 				return
 			}
 			Install-BuildTool @Params
+			$MakeDirectory = (Get-ChildItem -Path '\pkg' -Recurse -Include 'gmake.exe' | Select-Object -First 1).DirectoryName
+			New-Item -ItemType HardLink $MakeDirectory\make.exe -Target $MakeDirectory\gmake.exe
 			Write-PackageVars @{
 				env = @{
 					path = (@(
 						(Get-ChildItem -Path '\pkg' -Recurse -Include 'perl.exe' | Select-Object -First 1).DirectoryName,
-						(Get-ChildItem -Path '\pkg' -Recurse -Include 'gmake.exe' | Select-Object -First 1).DirectoryName
+						$MakeDirectory
 					) -join ';')
 				}
 			}
