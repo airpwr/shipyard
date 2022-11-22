@@ -15,7 +15,7 @@ function global:Install-PwrPackage {
 		return
 	}
 	$Tag = $Latest.name
-	$Version = $Tag.SubString(1)
+	$Version = $PwrPackageConfig.Version
 	$AssetName = "dotnet-$Version.zip"
 	$Resp = Invoke-WebRequest "https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-$Version-windows-x64-binaries"
 	if (-not ($Resp.Content -match '.*"(https://download\..*?)".*')) {
