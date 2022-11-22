@@ -6,7 +6,7 @@ function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'dotnet'
 		Repo = 'sdk'
-		TagPattern = '^v([0-9]+)\.([0-9]+)\.([0-9]+)$'
+		TagPattern = '^v([0-9]+)\.([0-9]+)\.([0-9]+)(?:-rtm.*)$'
 	}
 	$Latest = Get-GitHubTag @Params
 	$PwrPackageConfig.UpToDate = -not $Latest.Version.LaterThan($PwrPackageConfig.Latest)
@@ -14,8 +14,7 @@ function global:Install-PwrPackage {
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
-	$Tag = $Latest.name
-	$Version = $Tag.SubString(1)
+	$Version = $PwrPackageConfig.Version
 	$AssetName = "dotnet-$Version.zip"
 	$Resp = Invoke-WebRequest "https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-$Version-windows-x64-binaries"
 	if (-not ($Resp.Content -match '.*"(https://download\..*?)".*')) {
@@ -37,6 +36,6 @@ function global:Install-PwrPackage {
 
 function global:Test-PwrPackageInstall {
 	pwr sh 'file:///\pkg'
-	dotnet --info
+	dotnet --list-sdks
 	pwr exit
 }
