@@ -14,7 +14,6 @@ function global:Install-PwrPackage {
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
-	$Tag = $Latest.name
 	$Version = $PwrPackageConfig.Version
 	$AssetName = "dotnet-$Version.zip"
 	$Resp = Invoke-WebRequest "https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-$Version-windows-x64-binaries"
@@ -36,5 +35,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	get-content '\pkg\.pwr'
+	pwr sh 'file:///\pkg'
+	dotnet --list-sdks
+	pwr exit
 }
