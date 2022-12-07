@@ -16,13 +16,11 @@ function global:Install-PwrPackage {
 	}
 	$Tag = $Latest.name
 	$Version = $Tag.SubString(1)
-	$AssetName = "python-$Version-embed-amd64.zip"
-	$Params = @{
-		AssetName = $AssetName
-		AssetURL = "https://www.python.org/ftp/python/$Version/$AssetName"
-	}
-	Install-BuildTool @Params
-	Remove-Item '\pkg\*._pth'
+	$Installer = 'python-installer.exe'
+	Invoke-WebRequest -UseBasicParsing "https://www.python.org/ftp/python/$Version/python-$Version-amd64.exe" -OutFile $Installer
+	mkdir '\pkg'
+	$InstallDir = (Resolve-Path '\pkg').Path
+	Start-Process -Wait -PassThru ".\$Installer" "/quiet AssociateFiles=0 Shortcuts=0 Include_launcher=0 InstallLauncherAllUsers=0 InstallAllUsers=0 TargetDir=$InstallDir DefaultJustForMeTargetDir=$InstallDir DefaultAllUsersTargetDir=$InstallDir"
 	Write-PackageVars @{
 		env = @{
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'python.exe' | Select-Object -First 1).DirectoryName
@@ -31,5 +29,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	Get-Content '\pkg\.pwr'
+	pwr sh 'file:///\pkg'
+	python --version
+	pwr exit
 }
