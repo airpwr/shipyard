@@ -12,12 +12,11 @@ $global:MSVCVersions = @(
 function global:Install-PwrPackage {
 	$oldPath = $env:Path
 	# See https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
-	(Invoke-WebRequest 'https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history').Content -split '</tr>' | ForEach {
+	(Invoke-WebRequest 'https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history').Content -split '</tr>' | ForEach-Object {
 		if ($_ -match '(?s)<tr\b.+\bLTSC\b.+>([0-9]+\.[0-9]+\.[0-9]+)</.+ href="([^"]+/vs_BuildTools\.exe)"') {
 			$NewVersion = [SemanticVersion]::new($Matches[1])
 			if (-not $Version -or $NewVersion.LaterThan($Version)) {
 				$Version = $NewVersion
-				$URI = $Matches[2]
 			}
 		}
 	}
@@ -72,7 +71,7 @@ function global:Install-PwrPackage {
 			$vsSetup = "`"$((Get-ChildItem -Path '\pkg' -Recurse -Include 'VsDevCmd.bat' | Select-Object -First 1).FullName)`" $(if ($msvc.Ver) { "-vcvars_ver=$($msvc.Ver)" }) -arch=$arch -host_arch=amd64"
 			Write-Output 'Starting Dev Setup'
 			$vsenv = cmd /S /C "$vsSetup && set"
-			$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split('='); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1]; if ($s[1].Length > 2000) { Write-Warning "Long environment variable detected: $($s[0])" } } }
+			$vsenv.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $s = $_.Split('='); if ($s.count -eq 2) { Set-Item "env:$($s[0])" $s[1]; if ($s[1].Length -gt 2000) { Write-Warning "Long environment variable detected: $($s[0])" } } }
 			$map = @{}
 			foreach ($var in $vars) {
 				$map.$var = Get-Item "env:$var" -ErrorAction SilentlyContinue | ForEach-Object { $_.value.Replace("${env:ProgramFiles(x86)}", '\pkg') }
