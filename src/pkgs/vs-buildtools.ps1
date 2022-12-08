@@ -3,33 +3,34 @@ $global:PwrPackageConfig = @{
 }
 
 $global:MSVCVersions = @(
-	@{Name = 'msvc143'; Archs = @('x86', 'amd64', 'arm', 'arm64')},
-	@{Name = 'msvc142'; Ver = '14.29'; Archs = @('x86', 'amd64')},
-	@{Name = 'msvc141'; Ver = '14.16'; Archs = @('x86', 'amd64')},
-	@{Name = 'msvc140'; Ver = '14.0';  Archs = @('x86', 'amd64', 'arm')}
+	@{Name = 'msvc143'; Archs = @('x86', 'x64', 'amd64', 'arm', 'arm64')},
+	@{Name = 'msvc142'; Ver = '14.29'; Archs = @('x86', 'x64', 'amd64')},
+	@{Name = 'msvc141'; Ver = '14.16'; Archs = @('x86', 'x64', 'amd64')},
+	@{Name = 'msvc140'; Ver = '14.0';  Archs = @('x86', 'x64', 'amd64', 'arm')}
 )
 
 function global:Install-PwrPackage {
-	$oldPath = $env:Path
+	$OldPath = $env:Path
+	$VSInfo = $null
 	# See https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
 	(Invoke-WebRequest 'https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history').Content -split '</tr>' | ForEach-Object {
 		if ($_ -match '(?s)<tr\b.+\bLTSC\b.+>([0-9]+\.[0-9]+\.[0-9]+)</.+ href="([^"]+/vs_BuildTools\.exe)"') {
 			$NewVersion = [SemanticVersion]::new($Matches[1])
-			if (-not $Version -or $NewVersion.LaterThan($Version)) {
-				$Version = $NewVersion
+			if (-not $VSInfo -or $NewVersion.LaterThan($VSInfo.Version)) {
+				$VSInfo = @{Version = $NewVersion; URI = $Matches[2]}
 			}
 		}
 	}
-	if (-not $Version) {
+	if (-not $VSInfo) {
 		Write-Error 'No Visual Studio Build Tools found on website'
 	}
-	$PwrPackageConfig.Version = $Version.ToString()
-	$PwrPackageConfig.UpToDate = -not $Version.LaterThan($PwrPackageConfig.Latest)
+	$PwrPackageConfig.Version = $VSInfo.Version.ToString()
+	$PwrPackageConfig.UpToDate = -not $VSInfo.Version.LaterThan($PwrPackageConfig.Latest)
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
 	Write-Output "Installing Visual Studio Build Tools v$($PwrPackageConfig.Version)..."
-	Invoke-WebRequest -UseBasicParsing $URI -OutFile 'vs_buildtools.exe'
+	Invoke-WebRequest -UseBasicParsing $VSInfo.URI -OutFile 'vs_buildtools.exe'
 	$Options = @(
 		"--add Microsoft.VisualStudio.Workload.VCTools",
 		"--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
