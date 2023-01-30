@@ -15,12 +15,22 @@ function global:Install-PwrPackage {
 		return
 	}
 	$msi = "$env:Temp\rust.msi"
+	$installdir = "$env:USERPROFILE\.cargo\bin"
+	# $env:Path
+	[IO.Directory]::Delete($installdir, $true)
+	Write-Host "downloading rust $($latest.Version)"
 	Invoke-WebRequest "https://static.rust-lang.org/dist/rust-$($latest.Version)-x86_64-pc-windows-msvc.msi" -OutFile $msi -UseBasicParsing
-	msiexec.exe /i $msi /qn /norestart
+	Write-Host "installing $msi"
+	# icacls.exe "C:\Windows\Temp" /q /c /t /grant Users:F /T
+	# icacls.exe "$env:Temp" /q /c /t /grant Users:F /T
+	msiexec.exe /i $msi /quiet /passive /qn # /norestart
 	if ($LASTEXITCODE -ne 0) {
 		throw "msiexec exit code $LASTEXITCODE"
 	}
-	robocopy.exe "$env:USERPROFILE\.cargo\bin" '\pkg' /MIR
+	# while (-not [IO.File]::Exists("$installdir\rustc.exe")) {
+	# 	Start-Sleep -Seconds 2
+	# }
+	robocopy.exe $installdir '\pkg' /MIR
 	if ($LASTEXITCODE -ne 1) {
 		throw "robocopy exit code $LASTEXITCODE"
 	}
@@ -33,6 +43,12 @@ function global:Install-PwrPackage {
 
 function global:Test-PwrPackageInstall {
 	pwr sh 'file:///\pkg'
-	rustc --version
 	pwr exit
+	$rustver = & '\pkg\rustc.exe' --version
+	Write-Host $rustver
+	$wantver = "rustc $($global:PwrPackageConfig.Version)"
+	if (-not $rustver.ToString().StartsWith($wantver)) {
+		throw "wrong version $rustver (want $wantver)"
+	}
+	# Write-Host $rustver
 }
