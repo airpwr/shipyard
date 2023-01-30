@@ -9,14 +9,13 @@ function global:Install-PwrPackage {
 		TagPattern = '^([0-9]+)\.([0-9]+)\.([0-9]+)$'
 	}
 	$latest = Get-GitHubTag @params
-	$version = $latest.Name
 	$global:PwrPackageConfig.UpToDate = -not $latest.Version.LaterThan($global:PwrPackageConfig.Latest)
 	$global:PwrPackageConfig.Version = $latest.Version.ToString()
 	if ($global:PwrPackageConfig.UpToDate) {
 		return
 	}
 	$msi = "$env:Temp\rust.msi"
-	Invoke-WebRequest "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-msvc.msi" -OutFile $msi -UseBasicParsing
+	Invoke-WebRequest "https://static.rust-lang.org/dist/rust-$($latest.Version)-x86_64-pc-windows-msvc.msi" -OutFile $msi -UseBasicParsing
 	msiexec.exe /i $msi /qn /norestart
 	if ($LASTEXITCODE -ne 0) {
 		throw "msiexec exit code $LASTEXITCODE"
