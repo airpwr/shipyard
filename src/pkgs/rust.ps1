@@ -14,41 +14,49 @@ function global:Install-PwrPackage {
 	if ($global:PwrPackageConfig.UpToDate) {
 		return
 	}
-	$msi = "$env:Temp\rust.msi"
-	$installdir = "$env:USERPROFILE\.cargo\bin"
-	# $env:Path
-	[IO.Directory]::Delete($installdir, $true)
-	Write-Host "downloading rust $($latest.Version)"
-	Invoke-WebRequest "https://static.rust-lang.org/dist/rust-$($latest.Version)-x86_64-pc-windows-msvc.msi" -OutFile $msi -UseBasicParsing
-	Write-Host "installing $msi"
-	# icacls.exe "C:\Windows\Temp" /q /c /t /grant Users:F /T
-	# icacls.exe "$env:Temp" /q /c /t /grant Users:F /T
-	msiexec.exe /i $msi /quiet /passive /qn # /norestart
+	$cargohome = "$env:USERPROFILE\.cargo\bin" # Cargo installed by default
+	if ([IO.Directory]::Exists($cargohome)) {
+		Write-Host "removing default rust installation at $cargohome"
+		[IO.Directory]::Delete($cargohome, $true)
+	}
+	$idx = $env:Path.IndexOf($cargohome)
+	if ($idx -ge 0) {
+		$env:Path = $env:Path.Remove($idx, $cargohome.Length)
+	}
+	$env:CARGO_HOME = '\pkg'
+	Write-Host 'downloading rustup'
+	$rustup = "$env:Temp\rustup-init.exe"
+	Invoke-WebRequest 'https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe' -OutFile $rustup -UseBasicParsing
+	Write-Host "installing rust $($latest.Version)"
+	& $rustup -v -y --no-update-default-toolchain
 	if ($LASTEXITCODE -ne 0) {
-		throw "msiexec exit code $LASTEXITCODE"
+		throw "rustup-init exit code $LASTEXITCODE"
 	}
-	# while (-not [IO.File]::Exists("$installdir\rustc.exe")) {
-	# 	Start-Sleep -Seconds 2
-	# }
-	robocopy.exe $installdir '\pkg' /MIR
-	if ($LASTEXITCODE -ne 1) {
-		throw "robocopy exit code $LASTEXITCODE"
+	& "$env:CARGO_HOME\bin\rustup.exe" toolchain install $latest.Version
+	if ($LASTEXITCODE -ne 0) {
+		throw "rustup exit code $LASTEXITCODE"
 	}
+	& "\pkg\bin\rustc.exe" --version
 	Write-PackageVars @{
 		env = @{
+			cargo_home = (Split-Path (Get-ChildItem -Path '\pkg' -Recurse -Include 'bin' | Select-Object -First 1).FullName -Parent)
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'rustc.exe' | Select-Object -First 1).DirectoryName
 		}
 	}
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	pwr exit
-	$rustver = & '\pkg\rustc.exe' --version
-	Write-Host $rustver
+	if (-not $global:PwrPackageConfig.Version) {
+		throw 'missing package version'
+	}
 	$wantver = "rustc $($global:PwrPackageConfig.Version)"
+	$env:Path = "$env:AppData\pwr\cmd" # TODO: Remove when pwr version >= 0.6.0
+	pwr sh 'file:///\pkg'
+	$rustver = & rustc.exe --version
 	if (-not $rustver.ToString().StartsWith($wantver)) {
+		& "\pkg\bin\rustc.exe" --version
 		throw "wrong version $rustver (want $wantver)"
 	}
-	# Write-Host $rustver
+	pwr exit
+	Write-Host $rustver
 }
