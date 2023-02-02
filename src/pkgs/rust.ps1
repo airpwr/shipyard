@@ -15,31 +15,39 @@ function global:Install-PwrPackage {
 		return
 	}
 	$cargohome = "$env:USERPROFILE\.cargo\bin" # Cargo installed by default
-	if ([IO.Directory]::Exists($cargohome)) {
-		Write-Host "removing default rust installation at $cargohome"
-		[IO.Directory]::Delete($cargohome, $true)
-	}
-	$idx = $env:Path.IndexOf($cargohome)
-	if ($idx -ge 0) {
-		$env:Path = $env:Path.Remove($idx, $cargohome.Length)
-	}
-	$env:CARGO_HOME = '\pkg'
-	Write-Host 'downloading rustup'
-	$rustup = "$env:Temp\rustup-init.exe"
-	Invoke-WebRequest 'https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe' -OutFile $rustup -UseBasicParsing
+	Remove-Item "$cargohome\*"
+	Write-Host 'downloading rustup-init'
+	$init = "$env:Temp\rustup-init.exe"
+	Invoke-WebRequest 'https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe' -OutFile $init -UseBasicParsing
 	Write-Host "installing rust $($latest.Version)"
-	& $rustup -v -y --no-update-default-toolchain
+	& $init --version
+	& $init -v -y --no-update-default-toolchain
 	if ($LASTEXITCODE -ne 0) {
 		throw "rustup-init exit code $LASTEXITCODE"
 	}
-	& "$env:CARGO_HOME\bin\rustup.exe" toolchain install $latest.Version
+	rustup.exe target add i686-pc-windows-gnu
+	rustup.exe target add i686-pc-windows-msvc
+	rustup.exe target add x86_64-pc-windows-gnu
+	rustup.exe toolchain install $latest.Version
 	if ($LASTEXITCODE -ne 0) {
 		throw "rustup exit code $LASTEXITCODE"
 	}
-	& "\pkg\bin\rustc.exe" --version
+	Get-ChildItem $cargohome -Recurse
+	# Get-ChildItem $cargohome -Recurse | ForEach-Object {
+	# 	$x = "$cargohome\$($_.Name)"
+	# 	& $x --version
+	# 	if ($LASTEXITCODE -ne 0) {
+	# 		Write-Host "removing $($_.Name)"
+	# 		Remove-Item $x
+	# 	}
+	# }
+	robocopy.exe $cargohome '\pkg' /mir
+	if ($LASTEXITCODE -ne 1) {
+		throw "robocopy exit code $LASTEXITCODE"
+	}
 	Write-PackageVars @{
 		env = @{
-			cargo_home = (Split-Path (Get-ChildItem -Path '\pkg' -Recurse -Include 'bin' | Select-Object -First 1).FullName -Parent)
+			cargo_home = (Split-Path (Get-ChildItem -Path '\pkg' | Select-Object -First 1).FullName -Parent)
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'rustc.exe' | Select-Object -First 1).DirectoryName
 		}
 	}
