@@ -48,7 +48,7 @@ function Invoke-PwrInit {
 		$matcher = if ($PwrPackageConfig.Matcher) { $PwrPackageConfig.Matcher } else { "^$namePart" }
 		foreach ($item in $tagList.tags) {
 			if ($item -match $matcher) {
-				$v = [SemanticVersion]::new($item.Substring($namePart.length))
+				$v = [SemanticVersion]::new($item.Substring($namePart.length).Replace('_', '+'))
 				if ($v.LaterThan($latest)) {
 					$latest = $v
 				}
@@ -78,7 +78,7 @@ function Save-WorkflowMatrix {
 		Clear-PwrPackageScript
 		& $script.FullName
 		Test-PwrPackageScript
-		if ("${env:GITHUB_REF_NAME}.ps1" -eq $script.Name) {
+		if ("${env:GITHUB_REF_NAME}.ps1" -eq $script.Name -or $env:GITHUB_REF_NAME.StartsWith("$($script.BaseName)-")) {
 			$pkgs = ,$script.FullName.Replace((Get-Location), '.')
 			break
 		} elseif ((-not $PwrPackageConfig.Nonce) -or ("$($PwrPackageConfig.Name)-$($PwrPackageConfig.Version)" -notin $tagList.tags)) {
