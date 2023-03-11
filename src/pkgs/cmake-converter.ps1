@@ -15,7 +15,7 @@ function global:Install-PwrPackage {
 	# Check version
 	pwr exec python {
 		&$BatFile --help
-		$Version = [SemanticVersion]::new((python -m pip list | Select-String -Pattern '(?<=cmake-converter\s+)[0-9.]+').Matches[0].Value)
+		$script:Version = [SemanticVersion]::new((python -m pip list | Select-String -Pattern '(?<=cmake-converter\s+)[0-9.]+').Matches[0].Value)
 	}
 	$PwrPackageConfig.UpToDate = -not $Version.LaterThan($PwrPackageConfig.Latest)
 	$PwrPackageConfig.Version = $Version.ToString()
