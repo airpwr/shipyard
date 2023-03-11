@@ -97,15 +97,15 @@ function global:Install-PwrPackage {
 
 function global:Test-PwrPackageInstall {
 	Write-Host '--- Testing config default ---'
-	pwr sh 'file:///\pkg'
-	cl
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		cl
+	}
 	foreach ($msvc in $MSVCVersions) {
 		foreach ($arch in $msvc.Archs) {
 			Write-Host "--- Testing config $($msvc.name)-$arch ---"
-			pwr sh "file:///\pkg < $($msvc.name)-$arch"
-			cl
-			pwr exit
+			pwr exec "file:///\pkg < $($msvc.name)-$arch" {
+				cl
+			}
 		}
 	}
 }

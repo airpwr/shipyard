@@ -32,7 +32,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	latex -version
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		latex -version
+	}
 }

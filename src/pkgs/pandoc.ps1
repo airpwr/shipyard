@@ -28,7 +28,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	pandoc -v
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		pandoc -v
+	}
 }

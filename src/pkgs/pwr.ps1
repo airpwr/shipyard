@@ -25,9 +25,9 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	if ((Get-Command pwr).Path -ne (Resolve-Path '\pkg\pwr.ps1').Path) {
-		Write-Error (Get-Command pwr).Path
+	pwr exec 'file:///\pkg' {
+		if ((Get-Command pwr).Path -ne (Resolve-Path '\pkg\pwr.ps1').Path) {
+			Write-Error (Get-Command pwr).Path
+		}
 	}
-	pwr exit
 }

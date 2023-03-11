@@ -36,7 +36,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	dotnet --info
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		dotnet --info
+	}
 }

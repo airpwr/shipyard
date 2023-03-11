@@ -53,10 +53,10 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	javac -version
-	pwr exit
-	pwr sh 'file:///\pkg<x86'
-	javac -version
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		javac -version
+	}
+	pwr exec 'file:///\pkg<x86' {
+		javac -version
+	}
 }

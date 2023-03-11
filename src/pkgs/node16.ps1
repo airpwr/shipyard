@@ -31,7 +31,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	node --version
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		node --version
+	}
 }

@@ -27,7 +27,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	Get-Command wt
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		Get-Command wt
+	}
 }

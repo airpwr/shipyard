@@ -28,7 +28,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	chrome --headless --disable-gpu --dump-dom https://github.com/ungoogled-software/ungoogled-chromium-windows/releases/latest | tee -Variable ChromeStatus
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		chrome --headless --disable-gpu --dump-dom https://github.com/ungoogled-software/ungoogled-chromium-windows/releases/latest | tee -Variable ChromeStatus
+	}
 }
