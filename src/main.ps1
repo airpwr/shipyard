@@ -59,6 +59,7 @@ function Invoke-PwrInit {
 }
 
 function Invoke-PwrScript($pkg) {
+	$ProgressPreference = 'SilentlyContinue'
 	& $pkg
 	Invoke-PwrInit
 	Install-PwrPackage
