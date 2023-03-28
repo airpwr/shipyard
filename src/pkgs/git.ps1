@@ -32,9 +32,9 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	git --version
-	curl.exe --version
-	sed --version
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		git --version
+		curl.exe --version
+		sed --version
+	}
 }

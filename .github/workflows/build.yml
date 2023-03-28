@@ -40,7 +40,8 @@ jobs:
     - name: Run ${{ matrix.package }}
       id: pkg
       run: |
-        iex (iwr 'https://raw.githubusercontent.com/airpwr/airpwr/main/src/install.ps1')
+        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        Install-Module Airpower -Scope CurrentUser
         . .\src\main.ps1
         Invoke-PwrScript '${{ matrix.package }}'
         Write-Output "up-to-date=$($true -eq $PwrPackageConfig.UpToDate)" | Out-File $env:GITHUB_OUTPUT utf8 -Append

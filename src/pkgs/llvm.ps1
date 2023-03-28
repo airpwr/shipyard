@@ -19,9 +19,9 @@ function global:Install-PwrPackage {
 	$llvm = "$env:Temp\$($Asset.Name)"
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile $llvm
 	# Unpack llvm
-	pwr sh 7-zip
-	7z x -o'\pkg' $llvm | Out-Null
-	pwr exit
+	pwr exec 7-zip {
+		7z x -o'\pkg' $llvm | Out-Null
+	}
 	Write-PackageVars @{
 		env = @{
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'clang.exe' | Select-Object -First 1).DirectoryName
@@ -30,7 +30,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	clang --version
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		clang --version
+	}
 }

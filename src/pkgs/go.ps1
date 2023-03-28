@@ -29,7 +29,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	go version
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		go version
+	}
 }

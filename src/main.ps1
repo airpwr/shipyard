@@ -59,10 +59,10 @@ function Invoke-PwrInit {
 }
 
 function Invoke-PwrScript($pkg) {
+	$ProgressPreference = 'SilentlyContinue'
 	& $pkg
 	Invoke-PwrInit
 	Install-PwrPackage
-	# pwr shell $name-$version
 	Write-Output "shipyard: $($PwrPackageConfig.Name) v$($PwrPackageConfig.Version) is $(if ($PwrPackageConfig.UpToDate) { 'UP-TO-DATE' } else { 'OUT-OF-DATE' })"
 	if (-not $PwrPackageConfig.UpToDate) {
 		Test-PwrPackageInstall

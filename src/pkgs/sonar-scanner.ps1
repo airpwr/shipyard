@@ -28,7 +28,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh jre:11, 'file:///\pkg'
-	sonar-scanner --version
-	pwr exit
+	pwr exec jre:11, 'file:///\pkg' {
+		sonar-scanner --version
+	}
 }

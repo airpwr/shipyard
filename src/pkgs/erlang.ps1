@@ -30,7 +30,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr sh 'file:///\pkg'
-	erl -eval 'erlang:display(erlang:system_info(otp_release)), halt().' -noshell
-	pwr exit
+	pwr exec 'file:///\pkg' {
+		erl -eval 'erlang:display(erlang:system_info(otp_release)), halt().' -noshell
+	}
 }
