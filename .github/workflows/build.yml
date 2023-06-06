@@ -13,7 +13,7 @@ jobs:
       matrix: ${{ steps.init.outputs.matrix }}
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Analyze packages
       id: init
@@ -35,7 +35,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Run ${{ matrix.package }}
       id: pkg
