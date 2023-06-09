@@ -20,6 +20,7 @@ function global:Install-PwrPackage {
 	Invoke-WebRequest -UseBasicParsing 'https://www.7-zip.org/a/7za920.zip' -OutFile "$env:temp\7z.zip"
 	Expand-Archive "$env:temp\7z.zip" "$env:temp\7z"
 	& "$env:temp\7z\7za.exe" x -o'\pkg' $git | Out-Null
+	& (Get-ChildItem -Path '\pkg' -Recurse -Include 'git.exe' | Select-Object -First 1) config --system --unset credential.helper
 	Write-PackageVars @{
 		env = @{
 			path = (@(
