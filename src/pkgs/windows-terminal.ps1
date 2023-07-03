@@ -6,7 +6,7 @@ function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'microsoft'
 		Repo = 'terminal'
-		AssetPattern = 'Microsoft\.WindowsTerminal(Preview)?_Win10_.+\.msixbundle'
+		AssetPattern = 'Microsoft\.WindowsTerminal(Preview)?.+\.msixbundle'
 		TagPattern = '^v([0-9]+)\.([0-9]+)\.([0-9]+).*$'
 	}
 	$Asset = Get-GitHubRelease @Params
