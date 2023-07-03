@@ -78,7 +78,7 @@ function Save-WorkflowMatrix {
 		Clear-PwrPackageScript
 		& $script.FullName
 		Test-PwrPackageScript
-		if ("${env:GITHUB_REF_NAME}.ps1" -eq $script.Name -or $env:GITHUB_REF_NAME.StartsWith("$($script.BaseName)-")) {
+		if ("$($env:GITHUB_REF_NAME -replace '^.*/').ps1" -eq $script.Name -or ($env:GITHUB_REF_NAME -replace '^.*/').StartsWith("$($script.BaseName)-")) {
 			$pkgs = ,$script.FullName.Replace((Get-Location), '.')
 			break
 		} elseif ((-not $PwrPackageConfig.Nonce) -or ("$($PwrPackageConfig.Name)-$($PwrPackageConfig.Version)" -notin $tagList.tags)) {
