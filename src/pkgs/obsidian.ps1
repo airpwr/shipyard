@@ -19,18 +19,24 @@ function global:Install-PwrPackage {
 		AssetName = $Asset.Name
 		AssetURL  = $Asset.URL
 	}
-	Invoke-WebRequest -URL $Asset.URL -OutFile "obsidian.exe"
-	& "obsidian.exe"
-	# Install-BuildTool @Params
-	# Write-PackageVars @{
-	# 	env = @{
-	# 		path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'obsidian.exe' | Select-Object -First 1).DirectoryName
-	# 	}
-	# }
+	Write-Host "URL = $($Asset.URL)"
+	$obby = "obsidian.exe"
+	Invoke-WebRequest -UseBasicParsing "$($Asset.URL)" -OutFile $obby
+	airpower exec 7-zip {
+		mkdir '\app'
+		mkdir '\pkg'
+		7z x -o'\app' $obby | Out-Null
+		7z x -o'\pkg' '\app\$PLUGINSDIR\app-64.7z' | Out-Null
+	}
+	Write-PackageVars @{
+		env = @{
+			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'obsidian.exe' | Select-Object -First 1).DirectoryName
+		}
+	}
 }
 
 function global:Test-PwrPackageInstall {
-	pwr exec 'file:///\pkg' {
-		pwsh -v
+	airpower exec 'file:///\pkg' {
+		Get-Command obsidian
 	}
 }
