@@ -8,7 +8,7 @@ function global:Install-PwrPackage {
 	Set-Content $BatFile @"
 	@echo off
 
-	python -c "import cmake_converter" 2> NUL || python -m pip install cmake_converter --quiet --exists-action i
+	python -c "import cmake_converter" 2> NUL || python -m pip install --trusted-host pypi.org cmake_converter --quiet --exists-action i
 	python -m cmake_converter.main %*
 "@
 
