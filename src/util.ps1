@@ -31,17 +31,7 @@ Class SemanticVersion : System.IComparable {
 	[int] CompareTo([object]$Obj) {
 		if ($Obj -isnot $this.GetType()) {
 			throw "cannot compare types $($Obj.GetType()) and $($this.GetType())"
-		}
-		$i = $Obj.Major.CompareTo($this.Major)
-		if ($i -ne 0) {
-			return $i
-		}
-		$i = $Obj.Minor.CompareTo($this.Minor)
-		if ($i -ne 0) {
-			return $i
-		}
-		$i = $Obj.Patch.CompareTo($this.Patch)
-		if ($i -ne 0) {
+		} elseif ((($i = $Obj.Major.CompareTo($this.Major)) -ne 0) -or (($i = $Obj.Minor.CompareTo($this.Minor)) -ne 0) -or (($i = $Obj.Patch.CompareTo($this.Patch)) -ne 0)) {
 			return $i
 		}
 		return $Obj.Build.CompareTo($this.Build)
@@ -150,7 +140,7 @@ function Install-BuildTool {
 		[Parameter(Mandatory=$true)][string]$AssetURL,
 		[string]$ToolDir = '\pkg'
 	)
-	$Asset = "$env:Temp/$AssetName"
+	$Asset = "$env:Temp\$AssetName"
 	Invoke-WebRequest -UseBasicParsing $AssetURL -OutFile $Asset
 	Expand-Archive $Asset $ToolDir
 }
