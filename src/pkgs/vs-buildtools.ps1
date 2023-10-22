@@ -99,13 +99,13 @@ function global:Install-PwrPackage {
 
 function global:Test-PwrPackageInstall {
 	Write-Host '--- Testing config default ---'
-	pwr exec 'file:///\pkg' {
+	Airpower exec 'file:///\pkg' {
 		cl
 	}
 	foreach ($msvc in $MSVCVersions) {
 		foreach ($arch in $msvc.Archs) {
 			Write-Host "--- Testing config $($msvc.name)-$arch ---"
-			pwr exec "file:///\pkg < $($msvc.name)-$arch" {
+			Airpower exec "file:///\pkg < $($msvc.name)-$arch" {
 				cl
 			}
 		}

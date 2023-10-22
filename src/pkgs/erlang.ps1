@@ -17,7 +17,7 @@ function global:Install-PwrPackage {
 	}
 	$erlang = "$env:Temp\$($Asset.Name)"
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile $erlang
-	pwr load 7-zip
+	Airpower load 7-zip
 	& "7z.exe" x -o'\pkg' $erlang | Out-Null
 	$start = (Get-ChildItem -Path '\pkg' -Recurse -Include 'start.boot' | Select-Object -First 1).DirectoryName
 	mkdir '\pkg\bin'
@@ -30,7 +30,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr exec 'file:///\pkg' {
+	Airpower exec 'file:///\pkg' {
 		erl -eval 'erlang:display(erlang:system_info(otp_release)), halt().' -noshell
 	}
 }

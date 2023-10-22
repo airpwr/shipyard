@@ -28,7 +28,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr exec jre:11, 'file:///\pkg' {
+	Airpower exec jre, 'file:///\pkg' {
 		sonar-scanner --version
 	}
 }

@@ -19,7 +19,7 @@ function global:Install-PwrPackage {
 	$llvm = "$env:Temp\$($Asset.Name)"
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile $llvm
 	# Unpack llvm
-	pwr exec 7-zip {
+	Airpower exec 7-zip {
 		7z x -o'\pkg' $llvm | Out-Null
 	}
 	Write-PackageVars @{
@@ -30,7 +30,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr exec 'file:///\pkg' {
+	Airpower exec 'file:///\pkg' {
 		clang --version
 	}
 }

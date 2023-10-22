@@ -53,10 +53,10 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr exec 'file:///\pkg' {
+	Airpower exec 'file:///\pkg' {
 		javac -version
 	}
-	pwr exec 'file:///\pkg<x86' {
+	Airpower exec 'file:///\pkg<x86' {
 		javac -version
 	}
 }
