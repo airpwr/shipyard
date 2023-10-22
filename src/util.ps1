@@ -3,14 +3,14 @@ Class SemanticVersion : System.IComparable {
 	[int]$Major = 0
 	[int]$Minor = 0
 	[int]$Patch = 0
-	[int]$Build = 0
+	[double]$Build = 0.0
 
 	hidden init([string]$tag, [string]$pattern) {
 		if ($tag -match $pattern) {
 			$this.Major = if ($Matches[1]) { $Matches[1] } else { 0 }
 			$this.Minor = if ($Matches[2]) { $Matches[2] } else { 0 }
 			$this.Patch = if ($Matches[3]) { $Matches[3] } else { 0 }
-			$this.Build = if ($Matches[4]) { "$($Matches[4])".Substring(1) } else { 0 }
+			$this.Build = if ($Matches[4]) { [double]"$($Matches[4])".Substring(1).Replace('+', '.') } else { 0.0 }
 		}
 	}
 
@@ -31,15 +31,20 @@ Class SemanticVersion : System.IComparable {
 	[int] CompareTo([object]$Obj) {
 		if ($Obj -isnot $this.GetType()) {
 			throw "cannot compare types $($Obj.GetType()) and $($this.GetType())"
-		} elseif ($this.Major -ne $Obj.Major) {
-			return $Obj.Major - $this.Major
-		} elseif ($this.Minor -ne $Obj.Minor) {
-			return $Obj.Minor - $this.Minor
-		} elseif ($this.Patch -ne $Obj.Patch) {
-			return $Obj.Patch - $this.Patch
-		} else {
-			return $Obj.Build - $this.Build
 		}
+		$i = $Obj.Major.CompareTo($this.Major)
+		if ($i -ne 0) {
+			return $i
+		}
+		$i = $Obj.Minor.CompareTo($this.Minor)
+		if ($i -ne 0) {
+			return $i
+		}
+		$i = $Obj.Patch.CompareTo($this.Patch)
+		if ($i -ne 0) {
+			return $i
+		}
+		return $Obj.Build.CompareTo($this.Build)
 	}
 
 	[string] ToString() {
