@@ -3,14 +3,14 @@ Class SemanticVersion : System.IComparable {
 	[int]$Major = 0
 	[int]$Minor = 0
 	[int]$Patch = 0
-	[double]$Build = 0.0
+	[int]$Build = 0
 
 	hidden init([string]$tag, [string]$pattern) {
 		if ($tag -match $pattern) {
 			$this.Major = if ($Matches[1]) { $Matches[1] } else { 0 }
 			$this.Minor = if ($Matches[2]) { $Matches[2] } else { 0 }
 			$this.Patch = if ($Matches[3]) { $Matches[3] } else { 0 }
-			$this.Build = if ($Matches[4]) { [double]"$($Matches[4])".Substring(1).Replace('+', '.') } else { 0.0 }
+			$this.Build = if ($Matches[4]) { [Regex]::Replace("$($Matches[4])", '[^0-9]+', '') } else { 0 }
 		}
 	}
 
@@ -19,7 +19,7 @@ Class SemanticVersion : System.IComparable {
 	}
 
 	SemanticVersion([string]$version) {
-		$this.init($version, '^([0-9]+)\.([0-9]+)\.([0-9]+)(\+[0-9]+)?$')
+		$this.init($version, '^([0-9]+)\.([0-9]+)\.([0-9]+(?:\.[0-9]+))(\+[0-9]+)?$')
 	}
 
 	SemanticVersion() { }
