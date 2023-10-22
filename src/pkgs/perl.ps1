@@ -12,7 +12,7 @@ function global:Install-PwrPackage {
 				AssetName = $AssetName
 				AssetURL = $Item.edition.portable.url
 			}
-			$v = [SemanticVersion]::new($Version, '^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)')
+			$v = [SemanticVersion]::new($Version, '^([0-9]+)\.([0-9]+)\.([0-9]+)(\.[0-9]+)')
 			$PwrPackageConfig.UpToDate = -not $v.LaterThan($PwrPackageConfig.Latest)
 			$PwrPackageConfig.Version = $v.ToString()
 			if ($PwrPackageConfig.UpToDate) {
