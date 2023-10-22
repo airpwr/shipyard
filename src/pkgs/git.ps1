@@ -7,7 +7,7 @@ function global:Install-PwrPackage {
 		Owner = 'git-for-windows'
 		Repo = 'git'
 		AssetPattern = 'PortableGit-.+?64-bit\.7z\.exe'
-		TagPattern = '^v([0-9]+)\.([0-9]+)\.([0-9]+)\..*$'
+		TagPattern = '^v([0-9]+)\.([0-9]+)\.([0-9]+)\.windows(\.[0-9]+)$'
 	}
 	$Asset = Get-GitHubRelease @Params
 	$PwrPackageConfig.UpToDate = -not $Asset.Version.LaterThan($PwrPackageConfig.Latest)
