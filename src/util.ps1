@@ -19,7 +19,7 @@ Class SemanticVersion : System.IComparable {
 	}
 
 	SemanticVersion([string]$version) {
-		$this.init($version, '^([0-9]+)\.([0-9]+)\.([0-9]+(?:\.[0-9]+))(\+[0-9]+)?$')
+		$this.init($version, '^([0-9]+)\.([0-9]+)\.([0-9]+)([+.][0-9]+)?$')
 	}
 
 	SemanticVersion() { }
