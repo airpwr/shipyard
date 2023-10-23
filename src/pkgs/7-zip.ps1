@@ -18,7 +18,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr exec 'file:///\pkg' {
+	Airpower exec 'file:///\pkg' {
 		7z
 	}
 }

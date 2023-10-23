@@ -12,7 +12,7 @@ function global:Install-PwrPackage {
 				AssetName = $AssetName
 				AssetURL = $Item.edition.portable.url
 			}
-			$v = [SemanticVersion]::new($Version, '^([0-9]+)\.([0-9]+)\.([0-9]+)')
+			$v = [SemanticVersion]::new($Version, '^([0-9]+)\.([0-9]+)\.([0-9]+)(\.[0-9]+)')
 			$PwrPackageConfig.UpToDate = -not $v.LaterThan($PwrPackageConfig.Latest)
 			$PwrPackageConfig.Version = $v.ToString()
 			if ($PwrPackageConfig.UpToDate) {
@@ -20,7 +20,9 @@ function global:Install-PwrPackage {
 			}
 			Install-BuildTool @Params
 			$MakeDirectory = (Get-ChildItem -Path '\pkg' -Recurse -Include 'gmake.exe' | Select-Object -First 1).DirectoryName
-			New-Item -ItemType HardLink $MakeDirectory\make.exe -Target $MakeDirectory\gmake.exe
+			if (-not (Test-Path $MakeDirectory\make.exe)) {
+				New-Item -ItemType HardLink $MakeDirectory\make.exe -Target $MakeDirectory\gmake.exe
+			}
 			Write-PackageVars @{
 				env = @{
 					path = (@(

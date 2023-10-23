@@ -10,7 +10,7 @@ Class SemanticVersion : System.IComparable {
 			$this.Major = if ($Matches[1]) { $Matches[1] } else { 0 }
 			$this.Minor = if ($Matches[2]) { $Matches[2] } else { 0 }
 			$this.Patch = if ($Matches[3]) { $Matches[3] } else { 0 }
-			$this.Build = if ($Matches[4]) { "$($Matches[4])".Substring(1) } else { 0 }
+			$this.Build = if ($Matches[4]) { [Regex]::Replace("$($Matches[4])", '[^0-9]+', '') } else { 0 }
 		}
 	}
 
@@ -19,7 +19,7 @@ Class SemanticVersion : System.IComparable {
 	}
 
 	SemanticVersion([string]$version) {
-		$this.init($version, '^([0-9]+)\.([0-9]+)\.([0-9]+)(\+[0-9]+)?$')
+		$this.init($version, '^([0-9]+)\.([0-9]+)\.([0-9]+)([+.][0-9]+)?$')
 	}
 
 	SemanticVersion() { }
@@ -31,15 +31,10 @@ Class SemanticVersion : System.IComparable {
 	[int] CompareTo([object]$Obj) {
 		if ($Obj -isnot $this.GetType()) {
 			throw "cannot compare types $($Obj.GetType()) and $($this.GetType())"
-		} elseif ($this.Major -ne $Obj.Major) {
-			return $Obj.Major - $this.Major
-		} elseif ($this.Minor -ne $Obj.Minor) {
-			return $Obj.Minor - $this.Minor
-		} elseif ($this.Patch -ne $Obj.Patch) {
-			return $Obj.Patch - $this.Patch
-		} else {
-			return $Obj.Build - $this.Build
+		} elseif ((($i = $Obj.Major.CompareTo($this.Major)) -ne 0) -or (($i = $Obj.Minor.CompareTo($this.Minor)) -ne 0) -or (($i = $Obj.Patch.CompareTo($this.Patch)) -ne 0)) {
+			return $i
 		}
+		return $Obj.Build.CompareTo($this.Build)
 	}
 
 	[string] ToString() {
@@ -145,7 +140,7 @@ function Install-BuildTool {
 		[Parameter(Mandatory=$true)][string]$AssetURL,
 		[string]$ToolDir = '\pkg'
 	)
-	$Asset = "$env:Temp/$AssetName"
+	$Asset = "$env:Temp\$AssetName"
 	Invoke-WebRequest -UseBasicParsing $AssetURL -OutFile $Asset
 	Expand-Archive $Asset $ToolDir
 }

@@ -13,7 +13,7 @@ function global:Install-PwrPackage {
 "@
 
 	# Check version
-	pwr exec python {
+	Airpower exec python {
 		&$BatFile --help
 		$script:Version = [SemanticVersion]::new((python -m pip list | Select-String -Pattern '(?<=cmake-converter\s+)[0-9.]+').Matches[0].Value)
 	}
@@ -30,7 +30,7 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr exec python, 'file:///\pkg' {
+	Airpower exec python, 'file:///\pkg' {
 		# Run a test from the repo
 		Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/pavelliavonau/cmakeconverter/zipball/v2.2.0" -OutFile "$env:Temp\repo.zip"
 		Expand-Archive "$env:Temp\repo.zip" '\repo'

@@ -1,14 +1,14 @@
 $global:PwrPackageConfig = @{
-	Name = 'jdk'
-	Matcher = '^jdk-17\.'
+	Name = 'jre'
+	Matcher = '^jre-11\.'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'adoptium'
-		Repo = 'temurin17-binaries'
-		AssetPattern = '^.*jdk_x64_windows_hotspot_.+?\.zip$'
-		TagPattern = "^jdk-([0-9]+)\.([0-9]+)\.([0-9]+)[^']+$"
+		Repo = 'temurin11-binaries'
+		AssetPattern = '^.*jre_x64_windows_hotspot_.+?\.zip$'
+		TagPattern = "^jdk-(11)\.([0-9]+)\.([0-9]+)((\.[0-9]+)?(\+[0-9]+)?)$"
 	}
 	$Asset = Get-GitHubRelease @Params
 	$PwrPackageConfig.UpToDate = -not $Asset.Version.LaterThan($PwrPackageConfig.Latest)
@@ -23,7 +23,7 @@ function global:Install-PwrPackage {
 	}
 	Install-BuildTool @Params
 	New-Item -Path '\pkg\x64' -ItemType Directory -Force -ErrorAction Ignore | Out-Null
-	Move-Item "$(Get-ChildItem -Path '\pkg-preinstall\x64' -Recurse -Include 'bin' | ForEach-Object { Split-Path $_ })\*" '\pkg\x64'
+	Move-Item "$(Get-ChildItem -Path '\pkg-preinstall\x64' -Recurse -Include 'bin' | Select-Object -First 1 | ForEach-Object { Split-Path $_ })\*" '\pkg\x64'
 	$Params_x86 = @{
 		AssetName = $Asset.Name.Replace('_x64_', '_x86-32_')
 		AssetURL = $Asset.URL.Replace('_x64_', '_x86-32_')
@@ -31,7 +31,7 @@ function global:Install-PwrPackage {
 	}
 	Install-BuildTool @Params_x86
 	New-Item -Path '\pkg\x86' -ItemType Directory -Force -ErrorAction Ignore | Out-Null
-	Move-Item "$(Get-ChildItem -Path '\pkg-preinstall\x86' -Recurse -Include 'bin' | ForEach-Object { Split-Path $_ })\*" '\pkg\x86'
+	Move-Item "$(Get-ChildItem -Path '\pkg-preinstall\x86' -Recurse -Include 'bin' | Select-Object -First 1 | ForEach-Object { Split-Path $_ })\*" '\pkg\x86'
 	Write-PackageVars @{
 		env = @{
 			java_home = (Split-Path (Get-ChildItem -Path '\pkg\x64' -Recurse -Include 'bin' | Select-Object -First 1).FullName -Parent)
@@ -53,10 +53,10 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	pwr exec 'file:///\pkg' {
-		javac -version
+	Airpower exec 'file:///\pkg' {
+		java -version
 	}
-	pwr exec 'file:///\pkg<x86' {
-		javac -version
+	Airpower exec 'file:///\pkg<x86' {
+		java -version
 	}
 }
