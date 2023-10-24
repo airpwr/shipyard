@@ -8,7 +8,8 @@ function global:Install-PwrPackage {
 		Owner = 'adoptium'
 		Repo = 'temurin11-binaries'
 		AssetPattern = '^.*jre_x64_windows_hotspot_.+?\.zip$'
-		TagPattern = "^jdk-(11)\.([0-9]+)\.([0-9]+)((\.[0-9]+)?(\+[0-9]+)?)$"
+		# 11.0.20.1+1
+		TagPattern = "^jdk-(11)\.(0)\.(20)((\.1)(\+1))$"
 	}
 	$Asset = Get-GitHubRelease @Params
 	$PwrPackageConfig.UpToDate = -not $Asset.Version.LaterThan($PwrPackageConfig.Latest)
