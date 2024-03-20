@@ -6,7 +6,7 @@ function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'facebook'
 		Repo = 'zstd'
-		AssetPattern = 'zstd-v+-win64.zip'
+		AssetPattern = 'zstd-v.+-win64.zip'
 		TagPattern = '^v([0-9]+)\.([0-9]+)\.([0-9]+)$'
 	}
 	$Asset = Get-GitHubRelease @Params
