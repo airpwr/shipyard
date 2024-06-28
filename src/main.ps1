@@ -46,9 +46,11 @@ function Invoke-PwrInit {
 		$latest = [SemanticVersion]::new()
 		$namePart = "$($PwrPackageConfig.Name)-"
 		$matcher = if ($PwrPackageConfig.Matcher) { $PwrPackageConfig.Matcher } else { "^$namePart" }
+		$PwrPackageConfig.Tags = @()
 		foreach ($item in $tagList.tags) {
 			if ($item -match $matcher) {
 				$v = [SemanticVersion]::new($item.Substring($namePart.length).Replace('_', '+'))
+				$PwrPackageConfig.Tags += $v
 				if ($v.LaterThan($latest)) {
 					$latest = $v
 				}
