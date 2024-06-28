@@ -11,6 +11,7 @@ $global:MSVCVersions = @(
 
 function global:Install-PwrPackage {
 	$OldPath = $env:Path
+	$NewVersion = $null
 	$VSInfo = $null
 	$VersionWanted = if ($env:GITHUB_REF_NAME -match '-([0-9]+\.[0-9]+\.[0-9]+)$') { [SemanticVersion]::new($Matches[1]) } else { $null }
 	# See https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
@@ -18,19 +19,20 @@ function global:Install-PwrPackage {
 		if ($_ -match '(?s)<tr\b.+\bLTSC\b.+>([0-9]+\.[0-9]+\.[0-9]+)</.+ href="([^"]+/vs_BuildTools\.exe)"') {
 			$NewVersion = [SemanticVersion]::new($Matches[1])
 			if (($null -ne $VersionWanted -and $VersionWanted.CompareTo($NewVersion) -eq 0) -or
-					($null -eq $VersionWanted -and (-not $VSInfo -or $NewVersion.LaterThan($VSInfo.Version)))) {
+					($null -eq $VersionWanted -and $NewVersion -notin $PwrPackageConfig.Tags -and (-not $VSInfo -or $NewVersion.LaterThan($VSInfo.Version)))) {
 				$VSInfo = @{Version = $NewVersion; URI = $Matches[2]}
 			}
 		}
 	}
-	if (-not $VSInfo) {
+	if (-not $NewVersion) {
 		Write-Error 'No Visual Studio Build Tools found on website'
 	}
-	$PwrPackageConfig.Version = $VSInfo.Version.ToString()
-	$PwrPackageConfig.UpToDate = if ($null -eq $VersionWanted) { -not $VSInfo.Version.LaterThan($PwrPackageConfig.Latest) } else { $false }
-	if ($PwrPackageConfig.UpToDate) {
+	if (-not $VSInfo) {
+		$PwrPackageConfig.Version = $NewVersion.ToString()
+		$PwrPackageConfig.UpToDate = $true
 		return
 	}
+	$PwrPackageConfig.Version = $VSInfo.Version.ToString()
 	Write-Output "Installing Visual Studio Build Tools v$($PwrPackageConfig.Version)..."
 	Invoke-WebRequest -UseBasicParsing $VSInfo.URI -OutFile 'vs_buildtools.exe'
 	$Options = @(
