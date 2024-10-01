@@ -17,6 +17,8 @@ function global:Install-PwrPackage {
 	Write-Host 'removing existing rust installation'
 	$cargohome = "$env:USERPROFILE\.cargo"
 	[IO.Directory]::Delete($cargohome, $true)
+	$rustuphome = "$env:USERPROFILE\.rustup"
+	[IO.Directory]::Delete($rustuphome, $true)
 	Write-Host 'downloading rustup-init'
 	$init = "$env:Temp\rustup-init.exe"
 	Invoke-WebRequest 'https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe' -OutFile $init -UseBasicParsing
@@ -29,6 +31,10 @@ function global:Install-PwrPackage {
 	if ($LASTEXITCODE -ne 0) {
 		throw "rustup-init exit code $LASTEXITCODE"
 	}
+	rustup.exe default $latest.Version
+	if ($LASTEXITCODE -ne 0) {
+		throw "rustup default $($latest.Version) exit code $LASTEXITCODE"
+	}
 	foreach ($target in @('x86_64-pc-windows-msvc', 'x86_64-pc-windows-gnu', 'i686-pc-windows-msvc', 'i686-pc-windows-gnu')) {
 		rustup.exe target add $target
 		if ($LASTEXITCODE -ne 0) {
@@ -39,15 +45,18 @@ function global:Install-PwrPackage {
 	if ($LASTEXITCODE -ne 0) {
 		throw "rustup toolchain install $($latest.Version) exit code $LASTEXITCODE"
 	}
-	Get-ChildItem $cargohome -Recurse
-	robocopy.exe $cargohome '\pkg\.cargo' /np /nfl /ndl /ns /nc /mir
-	if ($LASTEXITCODE -ne 1) { # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/robocopy#exit-return-codes
-		throw "robocopy exit code $LASTEXITCODE"
+	Get-Content "$env:USERPROFILE\.rustup\settings.toml"
+	foreach ($dir in @('.cargo', '.rustup')) {
+		robocopy.exe "$env:USERPROFILE\$dir" "\pkg\$dir" /np /nfl /ndl /ns /nc /mir
+		if ($LASTEXITCODE -ne 1) { # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/robocopy#exit-return-codes
+			throw "robocopy exit code $LASTEXITCODE"
+		}
+		$global:LASTEXITCODE = 0 # Reset robocopy's exit code
 	}
-	$global:LASTEXITCODE = 0 # Reset robocopy's exit code
 	Write-PackageVars @{
 		env = @{
-			cargo_home = (Split-Path (Get-ChildItem -Path '\pkg' | Select-Object -First 1).FullName -Parent)
+			cargo_home = '\pkg\.cargo'
+			rustup_home = '\pkg\.rustup'
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'rustc.exe' | Select-Object -First 1).DirectoryName
 		}
 	}
@@ -59,9 +68,14 @@ function global:Test-PwrPackageInstall {
 	}
 	$wantver = "rustc $($global:PwrPackageConfig.Version) "
 	[IO.Directory]::Delete("$env:USERPROFILE\.cargo", $true)
+	[IO.Directory]::Delete("$env:USERPROFILE\.rustup", $true)
 	Airpower exec 'file:///\pkg' {
-		Get-ChildItem $env:CARGO_HOME -Recurse
+		Get-ChildItem $env:CARGO_HOME
+		Get-ChildItem $env:RUSTUP_HOME
 		$rustver = & rustc.exe --version
+		if ($LASTEXITCODE -ne 0) {
+			throw "rustc version exit code $LASTEXITCODE"
+		}
 		Write-Host "test rust version $rustver"
 		if (-not $rustver.ToString().StartsWith($wantver)) {
 			throw "wrong version $rustver (want $wantver)"
