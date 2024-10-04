@@ -14,11 +14,6 @@ function global:Install-PwrPackage {
 	if ($global:PwrPackageConfig.UpToDate) {
 		return
 	}
-	# Write-Host 'removing existing rust installation'
-	# $cargohome = "$env:USERPROFILE\.cargo"
-	# [IO.Directory]::Delete($cargohome, $true)
-	# $rustuphome = "$env:USERPROFILE\.rustup"
-	# [IO.Directory]::Delete($rustuphome, $true)
 	Write-Host 'setting environment variables for installation'
 	foreach ($dir in @('\pkg', '\pkg\.rustup','\pkg\.cargo')) {
 		New-Item -Path $dir -ItemType Directory -Force -ErrorAction Ignore | Out-Null
@@ -54,14 +49,6 @@ function global:Install-PwrPackage {
 	if ($LASTEXITCODE -ne 0) {
 		throw "rustup toolchain install $($latest.Version) exit code $LASTEXITCODE"
 	}
-	# Get-Content "$env:USERPROFILE\.rustup\settings.toml"
-	# foreach ($dir in @('.cargo', '.rustup')) {
-	# 	robocopy.exe "$env:USERPROFILE\$dir" "\pkg\$dir" /np /nfl /ndl /ns /nc /mir
-	# 	if ($LASTEXITCODE -ne 1) { # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/robocopy#exit-return-codes
-	# 		throw "robocopy exit code $LASTEXITCODE"
-	# 	}
-	# 	$global:LASTEXITCODE = 0 # Reset robocopy's exit code
-	# }
 	Write-PackageVars @{
 		env = @{
 			cargo_home = '\pkg\.cargo'
@@ -76,8 +63,6 @@ function global:Test-PwrPackageInstall {
 		throw 'missing package version'
 	}
 	$wantver = "rustc $($global:PwrPackageConfig.Version) "
-	# [IO.Directory]::Delete("$env:USERPROFILE\.cargo", $true)
-	# [IO.Directory]::Delete("$env:USERPROFILE\.rustup", $true)
 	Airpower exec 'file:///\pkg' {
 		Get-ChildItem $env:CARGO_HOME
 		Get-ChildItem $env:RUSTUP_HOME
@@ -90,7 +75,7 @@ function global:Test-PwrPackageInstall {
 			throw "wrong version $rustver (want $wantver)"
 		}
 		"fn main() { println!(`"Hello world`"); }" | Out-File -FilePath main.rs -Encoding utf8
-		rustc.exe --verbose main.rs
+		rustc.exe main.rs
 		if ($LASTEXITCODE -ne 0) {
 			throw "rustc exit code $LASTEXITCODE"
 		}
