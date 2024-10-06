@@ -78,8 +78,8 @@ function Invoke-PwrScript($pkg) {
 		if ($LASTEXITCODE -ne 0) {
 			throw "test package completed with exit code $LASTEXITCODE"
 		}
-		Invoke-DockerBuild 'image'
-		docker history image --no-trunc
+		tar.exe -czf 'pkg.tar.gz' '\pkg'
+		(Get-Item 'pkg.tar.gz').Length / 1MB
 	}
 }
 
