@@ -79,7 +79,7 @@ function Invoke-PwrScript($pkg) {
 			throw "test package completed with exit code $LASTEXITCODE"
 		}
 		tar.exe -czf 'pkg.tar.gz' '\pkg'
-		(Get-Item 'pkg.tar.gz').Length / 1MB
+		Write-Host "package size $('{0:N0}' -f [math]::Floor((Get-Item 'pkg.tar.gz').Length / 1KB))KB"
 		Remove-Item 'pkg.tar.gz' -ErrorAction SilentlyContinue
 	}
 }
