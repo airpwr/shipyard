@@ -39,7 +39,7 @@ function global:Install-PwrPackage {
 	if ($LASTEXITCODE -ne 0) {
 		throw "rustup default $($latest.Version) exit code $LASTEXITCODE"
 	}
-	foreach ($target in @('x86_64-pc-windows-msvc', 'x86_64-pc-windows-gnu', 'i686-pc-windows-msvc', 'i686-pc-windows-gnu')) {
+	foreach ($target in @('x86_64-pc-windows-msvc')) {
 		rustup.exe target add $target
 		if ($LASTEXITCODE -ne 0) {
 			throw "rustup target add $target exit code $LASTEXITCODE"
