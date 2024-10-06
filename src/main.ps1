@@ -80,6 +80,7 @@ function Invoke-PwrScript($pkg) {
 		}
 		tar.exe -czf 'pkg.tar.gz' '\pkg'
 		(Get-Item 'pkg.tar.gz').Length / 1MB
+		Remove-Item 'pkg.tar.gz' -ErrorAction SilentlyContinue
 	}
 }
 

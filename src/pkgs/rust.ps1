@@ -39,7 +39,7 @@ function global:Install-PwrPackage {
 	if ($LASTEXITCODE -ne 0) {
 		throw "rustup default $($latest.Version) exit code $LASTEXITCODE"
 	}
-	foreach ($target in @('x86_64-pc-windows-msvc', 'x86_64-pc-windows-gnu', 'i686-pc-windows-msvc', 'i686-pc-windows-gnu')) {
+	foreach ($target in @('x86_64-pc-windows-msvc')) {
 		rustup.exe target add $target
 		if ($LASTEXITCODE -ne 0) {
 			throw "rustup target add $target exit code $LASTEXITCODE"
@@ -64,8 +64,6 @@ function global:Test-PwrPackageInstall {
 	}
 	$wantver = "rustc $($global:PwrPackageConfig.Version) "
 	Airpower exec 'file:///\pkg' {
-		Get-ChildItem $env:CARGO_HOME
-		Get-ChildItem $env:RUSTUP_HOME
 		$rustver = & rustc.exe --version
 		if ($LASTEXITCODE -ne 0) {
 			throw "rustc version exit code $LASTEXITCODE"
