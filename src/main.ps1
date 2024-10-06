@@ -29,14 +29,18 @@ function Invoke-PwrPackageScan {
 	Get-MpThreatDetection
 }
 
-function Invoke-DockerPush($name, $version) {
-	$tag = "airpower/shipyard:$name-$($version.Replace('+', '_'))"
-	if (Get-Command 'Invoke-DockerBuild' -errorAction SilentlyContinue) {
+function Invoke-DockerBuild($tag) {
+	if (Get-Command 'Invoke-CustomDockerBuild' -ErrorAction SilentlyContinue) {
 		Write-Host 'Using custom docker build'
-		Invoke-DockerBuild $tag
+		Invoke-CustomDockerBuild $tag
 	} else {
 		& docker build -f Dockerfile -t $tag \pkg
 	}
+}
+
+function Invoke-DockerPush($name, $version) {
+	$tag = "airpower/shipyard:$name-$($version.Replace('+', '_'))"
+	Invoke-DockerBuild $tag
 	& docker image push $tag
 }
 
@@ -65,9 +69,19 @@ function Invoke-PwrScript($pkg) {
 	& $pkg
 	Invoke-PwrInit
 	Install-PwrPackage
+	if ($LASTEXITCODE -ne 0) {
+		throw "install package completed with exit code $LASTEXITCODE"
+	}
 	Write-Output "shipyard: $($PwrPackageConfig.Name) v$($PwrPackageConfig.Version) is $(if ($PwrPackageConfig.UpToDate) { 'UP-TO-DATE' } else { 'OUT-OF-DATE' })"
 	if (-not $PwrPackageConfig.UpToDate) {
 		Test-PwrPackageInstall
+		if ($LASTEXITCODE -ne 0) {
+			throw "test package completed with exit code $LASTEXITCODE"
+		}
+		# Uncomment to print compressed package size
+		# tar.exe -czf 'pkg.tar.gz' '\pkg'
+		# Write-Host "package size $('{0:N0}' -f [math]::Floor((Get-Item 'pkg.tar.gz').Length / 1KB))KB"
+		# Remove-Item 'pkg.tar.gz' -ErrorAction SilentlyContinue
 	}
 }
 
