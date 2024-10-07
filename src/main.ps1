@@ -69,13 +69,13 @@ function Invoke-PwrScript($pkg) {
 	& $pkg
 	Invoke-PwrInit
 	Install-PwrPackage
-	if ($LASTEXITCODE -gt 0 -or $LASTEXITCODE -lt 0) {
+	if ($LASTEXITCODE) {
 		throw "install package completed with exit code $LASTEXITCODE"
 	}
 	Write-Output "shipyard: $($PwrPackageConfig.Name) v$($PwrPackageConfig.Version) is $(if ($PwrPackageConfig.UpToDate) { 'UP-TO-DATE' } else { 'OUT-OF-DATE' })"
 	if (-not $PwrPackageConfig.UpToDate) {
 		Test-PwrPackageInstall
-		if ($LASTEXITCODE -gt 0 -or $LASTEXITCODE -lt 0) {
+		if ($LASTEXITCODE) {
 			throw "test package completed with exit code $LASTEXITCODE"
 		}
 		# Uncomment to print compressed package size
