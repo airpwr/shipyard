@@ -1,14 +1,14 @@
 $global:PwrPackageConfig = @{
 	Name = 'jre'
-	Matcher = '^jre-11\.'
+	Matcher = '^jre-21\.'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'adoptium'
-		Repo = 'temurin11-binaries'
+		Repo = 'temurin21-binaries'
 		AssetPattern = '^.*jre_x64_windows_hotspot_.+?\.zip$'
-		TagPattern = "^jdk-(11)\.([0-9]+)\.([0-9]+)((\.[0-9]+)?(\+[0-9]+)?)$"
+		TagPattern = "^jdk-(21)\.([0-9]+)\.([0-9]+)((\.[0-9]+)?(\+[0-9]+)?)$"
 	}
 	$Asset = Get-GitHubRelease @Params
 	$PwrPackageConfig.UpToDate = -not $Asset.Version.LaterThan($PwrPackageConfig.Latest)

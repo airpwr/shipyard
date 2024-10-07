@@ -1,14 +1,14 @@
 $global:PwrPackageConfig = @{
-	Name = 'jre'
-	Matcher = '^jre-11\.'
+	Name = 'jdk'
+	Matcher = '^jdk-21\.'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'adoptium'
-		Repo = 'temurin11-binaries'
-		AssetPattern = '^.*jre_x64_windows_hotspot_.+?\.zip$'
-		TagPattern = "^jdk-(11)\.([0-9]+)\.([0-9]+)((\.[0-9]+)?(\+[0-9]+)?)$"
+		Repo = 'temurin21-binaries'
+		AssetPattern = '^.*jdk_x64_windows_hotspot_.+?\.zip$'
+		TagPattern = "^jdk-(21)\.([0-9]+)\.([0-9]+)((\.[0-9]+)?(\+[0-9]+)?)$"
 	}
 	$Asset = Get-GitHubRelease @Params
 	$PwrPackageConfig.UpToDate = -not $Asset.Version.LaterThan($PwrPackageConfig.Latest)
@@ -55,8 +55,10 @@ function global:Install-PwrPackage {
 function global:Test-PwrPackageInstall {
 	Airpower exec 'file:///\pkg' {
 		java -version
+		javac -version
 	}
 	Airpower exec 'file:///\pkg<x86' {
 		java -version
+		javac -version
 	}
 }
