@@ -145,6 +145,7 @@ function Install-BuildTool {
 		[string]$ToolDir = '\pkg'
 	)
 	$Asset = "$env:Temp\$AssetName"
+	Write-Output "downloading $AssetURL to $Asset"
 	Invoke-WebRequest -UseBasicParsing $AssetURL -OutFile $Asset
 	Expand-Archive $Asset $ToolDir
 }
