@@ -37,6 +37,10 @@ Class SemanticVersion : System.IComparable {
 		return $Obj.Build.CompareTo($this.Build)
 	}
 
+	[bool] Equals([object]$Obj) {
+		return $Obj -is $this.GetType() -and $Obj.Major -eq $this.Major -and $Obj.Minor -eq $this.Minor -and $Obj.Patch -eq $this.Patch -and $Obj.Build -eq $this.Build
+	}
+
 	[string] ToString() {
 		return "$($this.Major).$($this.Minor).$($this.Patch)$(if ($this.Build) {"+$($this.Build)"})"
 	}
