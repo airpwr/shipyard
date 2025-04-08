@@ -33,6 +33,11 @@ function global:Install-PwrPackage {
 				path = (Get-ChildItem -Path '\pkg\x64' -Recurse -Include 'gcc.exe' | Select-Object -First 1).DirectoryName
 			}
 		}
+		x64 = @{
+			env = @{
+				path = (Get-ChildItem -Path '\pkg\x64' -Recurse -Include 'gcc.exe' | Select-Object -First 1).DirectoryName
+			}
+		}
 		x86 = @{
 			env = @{
 				path = (Get-ChildItem -Path '\pkg\x86' -Recurse -Include 'gcc.exe' | Select-Object -First 1).DirectoryName
