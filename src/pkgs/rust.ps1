@@ -53,7 +53,7 @@ function global:Install-PwrPackage {
 		env = @{
 			cargo_home = '\pkg\.cargo'
 			rustup_home = '\pkg\.rustup'
-			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'rustc.exe' | Select-Object -First 1).DirectoryName
+			path = '\pkg\.cargo\bin', (Get-ChildItem -Path '\pkg\.rustup' -Recurse -Include 'rustc.exe' | Select-Object -First 1).DirectoryName -join ';'
 		}
 	}
 }
