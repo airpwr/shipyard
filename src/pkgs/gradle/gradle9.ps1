@@ -1,13 +1,13 @@
 $global:PwrPackageConfig = @{
 	Name = 'gradle'
-	Matcher = '^gradle-6\.'
+	Matcher = '^gradle-9\.'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'gradle'
 		Repo = 'gradle'
-		TagPattern = '^v(6)\.([0-9]+)\.([0-9]+)$'
+		TagPattern = '^v(9)\.([0-9]+)\.([0-9]+)$'
 	}
 	$Latest = Get-GitHubTag @Params
 	$PwrPackageConfig.UpToDate = -not $Latest.Version.LaterThan($PwrPackageConfig.Latest)
