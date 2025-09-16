@@ -37,6 +37,7 @@ function global:Install-PwrPackage {
 	Invoke-WebRequest -UseBasicParsing $VSInfo.URI -OutFile 'vs_buildtools.exe'
 	$Options = @(
 		"--add Microsoft.VisualStudio.Workload.VCTools",
+		"--add Microsoft.VisualStudio.Component.VC.ASAN",
 		"--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
 		"--add Microsoft.VisualStudio.Component.VC.Tools.ARM",
 		"--add Microsoft.VisualStudio.Component.VC.Tools.ARM64",
