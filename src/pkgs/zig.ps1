@@ -15,7 +15,7 @@ function global:Install-PwrPackage {
 		return
 	}
 	$Tag = $Latest.name
-	$AssetName = "zig-windows-x86_64-$Tag.zip"
+	$AssetName = "zig-x86_64-windows-$Tag.zip"
 	$Params = @{
 		AssetName = $AssetName
 		AssetURL = "https://ziglang.org/download/$Tag/$AssetName"
