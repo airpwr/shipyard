@@ -17,9 +17,6 @@ function global:Install-PwrPackage {
 	}
 	$Tag = $Latest.name
 	$Version = $Tag.SubString(1)
-	if ($Version.EndsWith('.0')) {
-		$Version = $Version.SubString(0, $Version.Length - 2)
-	}
 	$AssetName = "gradle-$Version-bin.zip"
 	$Params = @{
 		AssetName = $AssetName
