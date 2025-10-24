@@ -6,7 +6,7 @@ function global:Install-PwrPackage {
 	$Params = @{
 		Owner        = 'obsidianmd'
 		Repo         = 'obsidian-releases'
-		AssetPattern = '^Obsidian-\.([0-9]+)\.([0-9]+)\.([0-9]+)\.exe$'
+		AssetPattern = '^Obsidian-([0-9]+)\.([0-9]+)\.([0-9]+)\.exe$'
 		TagPattern   = '^v([0-9]+)\.([0-9]+)\.([0-9]+)$'
 	}
 	$Asset = Get-GitHubRelease @Params
@@ -17,7 +17,7 @@ function global:Install-PwrPackage {
 	}
 	$Params = @{
 		AssetName = $Asset.Name
-		AssetURL  = $Asset.URL
+		AssetURL = $Asset.URL
 	}
 	Write-Host "URL = $($Asset.URL)"
 	$obby = "obsidian.exe"
