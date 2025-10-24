@@ -16,15 +16,9 @@ function global:Install-PwrPackage {
 	}
 	$Tag = $Latest.name
 	$Version = $Tag.SubString(1)
-	$AssetName = "dotnet-$Version.zip"
-	$Resp = Invoke-WebRequest "https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-$Version-windows-x64-binaries"
-	if (-not ($Resp.Content -match '.*"(https://download\..*?)".*')) {
-		Write-Error "failed to match the url pattern"
-		return
-	}
 	$Params = @{
-		AssetName = $AssetName
-		AssetURL = $Matches[1]
+		AssetName = "dotnet-$Version.zip"
+		AssetURL = "https://builds.dotnet.microsoft.com/dotnet/Runtime/$Version/dotnet-runtime-$Version-win-x64.zip"
 	}
 	Install-BuildTool @Params
 	Write-PackageVars @{
