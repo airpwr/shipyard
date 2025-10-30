@@ -1,14 +1,14 @@
-# End-of-Life is 2024-04-30. See https://nodejs.org/en/about/releases/
+# End-of-Life is 2027-04-30. See https://nodejs.org/en/about/releases/
 $global:PwrPackageConfig = @{
 	Name = 'node'
-	Matcher = '^node-16\.'
+	Matcher = '^node-22\.'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'nodejs'
 		Repo = 'node'
-		TagPattern = '^v(16)\.([0-9]+)\.([0-9]+)$'
+		TagPattern = '^v(22)\.([0-9]+)\.([0-9]+)$'
 	}
 	$Latest = Get-GitHubTag @Params
 	$PwrPackageConfig.UpToDate = -not $Latest.Version.LaterThan($PwrPackageConfig.Latest)
