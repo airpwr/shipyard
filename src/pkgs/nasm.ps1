@@ -6,7 +6,7 @@ function global:Install-PwrPackage {
 	$Params = @{
 		Owner = 'netwide-assembler'
 		Repo = 'nasm'
-		TagPattern = '^.*([0-9]+)\.([0-9]+)\.([0-9]+)$'
+		TagPattern = '^nasm-([0-9]+)\.([0-9]+)(?:\.([0-9]+))?$'
 	}
 	$Latest = Get-GitHubTag @Params
 	$PwrPackageConfig.UpToDate = -not $Latest.Version.LaterThan($PwrPackageConfig.Latest)
