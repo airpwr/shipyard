@@ -24,7 +24,15 @@ function Test-PwrPackageScript {
 function Invoke-PwrPackageScan {
 	Set-Service -Name wuauserv -StartupType Manual -Status Running
 	(Get-Service wuauserv).WaitForStatus('Running')
-	Update-MpSignature
+	for ($i = 0; $i -lt 5; $i++) {
+		try {
+			Start-Sleep -Seconds 10.0
+			Update-MpSignature
+			break
+		} catch {
+			Write-Host "An error occurred: $($_.Exception.Message)"
+		}
+	}
 	Start-MpScan -ScanType CustomScan -ScanPath (Resolve-Path '\pkg').Path
 	Get-MpThreatDetection
 }
