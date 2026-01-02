@@ -15,16 +15,11 @@ function global:Install-PwrPackage {
 		return
 	}
 	$Version = $PwrPackageConfig.Version
-	$AssetName = "dotnet-$Version.zip"
-	$Resp = Invoke-WebRequest "https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-$Version-windows-x64-binaries"
-	if (-not ($Resp.Content -match '.*"(https://download\..*?)".*')) {
-		Write-Error "failed to match the url pattern"
-		return
-	}
 	$Params = @{
-		AssetName = $AssetName
-		AssetURL = $Matches[1]
+		AssetName = "dotnet-sdk-$Version.zip"
+		AssetURL = "https://builds.dotnet.microsoft.com/dotnet/Sdk/$Version/dotnet-sdk-$Version-win-x64.zip"
 	}
+
 	Install-BuildTool @Params
 	Write-PackageVars @{
 		env = @{
