@@ -29,7 +29,9 @@ Class SemanticVersion : System.IComparable {
 	}
 
 	[int] CompareTo([object]$Obj) {
-		if (($null -ne $Obj) -and ($Obj -isnot $this.GetType())) {
+		if ($null -eq $Obj) {
+			throw "cannot compare to null"
+		} elseif ($Obj -isnot $this.GetType()) {
 			throw "cannot compare types $($Obj.GetType()) and $($this.GetType())"
 		} elseif ((($i = $Obj.Major.CompareTo($this.Major)) -ne 0) -or (($i = $Obj.Minor.CompareTo($this.Minor)) -ne 0) -or (($i = $Obj.Patch.CompareTo($this.Patch)) -ne 0)) {
 			return $i

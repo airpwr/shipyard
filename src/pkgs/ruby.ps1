@@ -6,12 +6,15 @@ function global:Install-PwrPackage {
     $Params = @{
         Owner        = 'oneclick'
         Repo         = 'rubyinstaller2'
-        AssetPattern = '^rubyinstaller-([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\-x64\.7z$'
-        TagPattern   = '^rubyinstaller-([0-9]+)\.([0-9]+)\.([0-9]+)$'
+        AssetPattern = '^rubyinstaller-([0-9]+\.[0-9]+\.[0-9]+)\-[0-9]+\-x64\.7z$'
+        TagPattern   = '^RubyInstaller-([0-9]+)\.([0-9]+)\.([0-9]+)\-[0-9]+$'
     }
 
     $Asset = Get-GitHubRelease @Params
-    $global:PwrPackageConfig.UpToDate = -not $Asset.Version.LaterThan($global:PwrPackageConfig.Latest)
+	$PwrPackageConfig.UpToDate = $False
+	if ($PwrPackageConfig.Latest) {
+		$PwrPackageConfig.UpToDate = -not $Asset.Version.LaterThan($PwrPackageConfig.Latest)
+	}
     $global:PwrPackageConfig.Version = $Asset.Version.ToString()
 
     if ($global:PwrPackageConfig.UpToDate) {
