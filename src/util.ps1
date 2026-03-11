@@ -29,7 +29,9 @@ Class SemanticVersion : System.IComparable {
 	}
 
 	[int] CompareTo([object]$Obj) {
-		if ($Obj -isnot $this.GetType()) {
+		if ($null -eq $Obj) {
+			throw "cannot compare to null"
+		} elseif ($Obj -isnot $this.GetType()) {
 			throw "cannot compare types $($Obj.GetType()) and $($this.GetType())"
 		} elseif ((($i = $Obj.Major.CompareTo($this.Major)) -ne 0) -or (($i = $Obj.Minor.CompareTo($this.Minor)) -ne 0) -or (($i = $Obj.Patch.CompareTo($this.Patch)) -ne 0)) {
 			return $i
@@ -75,11 +77,14 @@ function Set-RegistryKey($path, $name, $value) {
 }
 
 function Find-LatestTag([object[]]$List, [string]$TagProperty, [string]$TagPattern) {
+	Write-Debug "Finding latest tag in list of $($List.Count) items using property '$TagProperty' and pattern '$TagPattern'"
 	$LatestAsset = $List[0]
 	$LatestVersion = [SemanticVersion]::new($LatestAsset.$TagProperty, $TagPattern)
 	for ($i = 1; $i -lt $List.Count; $i += 1) {
 		$version = [SemanticVersion]::new($List[$i].$TagProperty, $TagPattern)
+		Write-Debug "Comparing version $version to current latest $LatestVersion"
 		if ($LatestVersion.CompareTo($version) -gt 0) {
+			Write-Debug "Found newer version: $version (previous: $LatestVersion)"
 			$LatestAsset = $List[$i]
 			$LatestVersion = $version
 		}
@@ -97,11 +102,15 @@ function Get-GitHubRelease {
 		[Parameter(Mandatory=$true)][string]$AssetPattern,
 		[Parameter(Mandatory=$true)][string]$TagPattern
 	)
-	$Releases = (Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/$Owner/$Repo/releases/latest").Content | ConvertFrom-Json
+	$ReleaseUrl = "https://api.github.com/repos/$Owner/$Repo/releases/latest"
+	Write-Debug "Fetching GitHub release info from $ReleaseUrl"
+	$Releases = (Invoke-WebRequest -UseBasicParsing $ReleaseUrl).Content | ConvertFrom-Json
 	$Latest = Find-LatestTag $Releases 'tag_name' $TagPattern
 	if ($Latest) {
 		foreach ($Asset in $Latest.item.assets) {
+			Write-Debug "Checking asset $($Asset.name) against pattern $AssetPattern"
 			if ($Asset.name -match $AssetPattern) {
+				Write-Debug "Found matching asset: $($Asset.name)"
 				return @{
 					URL = $Asset.browser_download_url
 					Name = $Asset.name
@@ -123,13 +132,14 @@ function Get-GitHubTag {
 	$i = 1
 	$Tags = @()
 	do {
-		Write-Output "page=$i"
+		Write-Debug "Fetching page $i"
 		$Page = (Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/$Owner/$Repo/tags?per_page=100&page=$i").Content | ConvertFrom-Json
 		$Tags += $Page
 		$i++
 	} while ($Page.Count -gt 0)
 	$Latest = Find-LatestTag $Tags 'name' $TagPattern
 	if ($Latest) {
+		Write-Debug "Found latest tag: $($Latest.item.name) with version $($Latest.version)"
 		return @{
 			Name = $Latest.item.name
 			Version = $Latest.version
@@ -147,5 +157,12 @@ function Install-BuildTool {
 	$Asset = "$env:Temp\$AssetName"
 	Write-Output "downloading $AssetURL to $Asset"
 	Invoke-WebRequest -UseBasicParsing $AssetURL -OutFile $Asset
-	Expand-Archive $Asset $ToolDir
+	If ($AssetName -match '\.7z$') {
+		Write-Debug "Extracting $Asset as 7z archive to $ToolDir"
+		Install-Module -Name 7Zip4Powershell -Force -Scope CurrentUser | Out-Null
+		Expand-7zip -ArchiveFileName $Asset -TargetPath $ToolDir
+	} ElseIf ($AssetName -match '\.zip$') {
+		Write-Debug "Extracting $Asset as zip archive to $ToolDir"
+		Expand-Archive $Asset $ToolDir
+	}
 }
