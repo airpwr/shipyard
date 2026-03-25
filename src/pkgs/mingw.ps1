@@ -15,13 +15,13 @@ function global:Install-PwrPackage {
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
-	$mingw = "$env:Temp\$($Asset.Name)"
+	$mingw = "$env:TEMP\$($Asset.Name)"
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile $mingw
 	Airpower load 7-zip
 	& "7z.exe" x -o'\pkg\x64' $mingw | Out-Null
 	$Params.AssetPattern = 'i686-.+-win32(?:-.+)?-ucrt-.+\.7z'
 	$Asset = Get-GitHubRelease @Params
-	$mingw = "$env:Temp\$($Asset.Name)"
+	$mingw = "$env:TEMP\$($Asset.Name)"
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile $mingw
 	& "7z.exe" x -o'\pkg\x86' $mingw | Out-Null
 	Write-PackageVars @{

@@ -23,8 +23,8 @@ function global:Install-PwrPackage {
 	}
 	$PwrPackageConfig.Version = $PkgInfo.Version.ToString()
 	Write-Output "Installing maven v$($PwrPackageConfig.Version)..."
-	Install-BuildTool 'maven.zip' $PkgInfo.URI "$env:Temp\maven-unzip"
-	Move-Item (Get-Item "$env:Temp\maven-unzip\*") '\pkg'
+	Install-BuildTool 'maven.zip' $PkgInfo.URI "$env:TEMP\maven-unzip"
+	Move-Item (Get-Item "$env:TEMP\maven-unzip\*") '\pkg'
 	Write-PackageVars @{
 		env = @{
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'mvn.cmd' | Select-Object -First 1).DirectoryName

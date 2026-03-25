@@ -23,7 +23,7 @@ function global:Install-PwrPackage {
 	[System.Environment]::SetEnvironmentVariable('Path', "\pkg\.cargo\bin;$env:Path")
 	Write-Host "Path=$env:Path"
 	Write-Host 'downloading rustup-init'
-	$init = "$env:Temp\rustup-init.exe"
+	$init = "$env:TEMP\rustup-init.exe"
 	Invoke-WebRequest 'https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe' -OutFile $init -UseBasicParsing
 	Write-Host "installing rust $($latest.Version)"
 	& $init --version

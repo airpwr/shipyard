@@ -32,8 +32,8 @@ function global:Install-PwrPackage {
 function global:Test-PwrPackageInstall {
 	Airpower exec python, 'file:///\pkg' {
 		# Run a test from the repo
-		Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/pavelliavonau/cmakeconverter/zipball/v2.2.0" -OutFile "$env:Temp\repo.zip"
-		Expand-Archive "$env:Temp\repo.zip" '\repo'
+		Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/pavelliavonau/cmakeconverter/zipball/v2.2.0" -OutFile "$env:TEMP\repo.zip"
+		Expand-Archive "$env:TEMP\repo.zip" '\repo'
 		cmake-converter -s "$((Get-ChildItem -Path '\repo' -Recurse -Include 'setup.py' | Select-Object -First 1).DirectoryName)\test\datatest\sln\cpp.sln"
 	}
 }

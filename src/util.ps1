@@ -154,7 +154,7 @@ function Install-BuildTool {
 		[Parameter(Mandatory=$true)][string]$AssetURL,
 		[string]$ToolDir = '\pkg'
 	)
-	$Asset = "$env:Temp\$AssetName"
+	$Asset = "$env:TEMP\$AssetName"
 	Write-Output "downloading $AssetURL to $Asset"
 	Invoke-WebRequest -UseBasicParsing $AssetURL -OutFile $Asset
 	If ($AssetName -match '\.7z$') {

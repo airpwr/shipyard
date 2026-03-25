@@ -17,7 +17,7 @@ function global:Install-PwrPackage {
 	$AssetName = 'miktexsetup-x64.zip'
 	$PackageSet = 'basic' # 'basic' (~850MB), 'advanced' (~1.5GB), 'complete' (~8GB)
 	$ToolDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("\pkg")
-	$Asset = "$env:Temp/$AssetName"
+	$Asset = "$env:TEMP/$AssetName"
 	# Those turdcicles don't have the installer tied to the version
 	Invoke-WebRequest -UseBasicParsing "https://miktex.org/download/win/$AssetName" -OutFile $Asset
 	Expand-Archive $Asset 'miktexsetup'

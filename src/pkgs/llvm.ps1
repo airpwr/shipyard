@@ -16,7 +16,7 @@ function global:Install-PwrPackage {
 		return
 	}
 	# Download llvm
-	$llvm = "$env:Temp\$($Asset.Name)"
+	$llvm = "$env:TEMP\$($Asset.Name)"
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile $llvm
 	# Unpack llvm
 	Airpower exec 7-zip {
