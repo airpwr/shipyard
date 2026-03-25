@@ -5,11 +5,11 @@ $global:PwrPackageConfig = @{
 }
 
 function global:Install-PwrPackage {
-	$z = "$env:Temp\7zInstall.exe"
+	$z = "$env:TEMP\7zInstall.exe"
 	Invoke-WebRequest -UseBasicParsing 'https://www.7-zip.org/a/7z2501-x64.exe' -OutFile $z
-	Invoke-WebRequest -UseBasicParsing 'https://www.7-zip.org/a/7za920.zip' -OutFile "$env:temp\7z.zip"
-	Expand-Archive "$env:temp\7z.zip" "$env:temp\7z"
-	& "$env:temp\7z\7za.exe" x -o'\pkg' $z | Out-Null
+	Invoke-WebRequest -UseBasicParsing 'https://www.7-zip.org/a/7za920.zip' -OutFile "$env:TEMP\7z.zip"
+	Expand-Archive "$env:TEMP\7z.zip" "$env:TEMP\7z"
+	& "$env:TEMP\7z\7za.exe" x -o'\pkg' $z | Out-Null
 	Write-PackageVars @{
 		env = @{
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include '7z.exe' | Select-Object -First 1).DirectoryName

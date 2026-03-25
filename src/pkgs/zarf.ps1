@@ -15,7 +15,7 @@ function global:Install-PwrPackage {
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
-	New-Item -Path '\pkg' -ItemType "Directory"
+	New-Item -Path '\pkg' -ItemType 'Directory'
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile '\pkg\zarf.exe'
 	Write-PackageVars @{
 		env = @{

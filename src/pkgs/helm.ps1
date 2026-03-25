@@ -1,12 +1,12 @@
 $global:PwrPackageConfig = @{
-	Name = 'doxygen'
+	Name = 'helm'
 }
 
 function global:Install-PwrPackage {
 	$Params = @{
-		Owner = 'doxygen'
-		Repo = 'doxygen'
-		TagPattern = '^Release_([0-9]+)_([0-9]+)_([0-9]+)$'
+		Owner = 'helm'
+		Repo = 'helm'
+		TagPattern = '^v([0-9]+)\.([0-9]+)\.([0-9]+)$'
 	}
 	$Latest = Get-GitHubTag @Params
 	$PwrPackageConfig.UpToDate = -not $Latest.Version.LaterThan($PwrPackageConfig.Latest)
@@ -15,21 +15,21 @@ function global:Install-PwrPackage {
 		return
 	}
 	$Version = $Latest.version.ToString()
-	$AssetName = "doxygen-$Version.windows.x64.bin.zip"
+	$AssetName = "helm-v$Version-windows-amd64.zip"
 	$Params = @{
 		AssetName = $AssetName
-		AssetURL = "https://www.doxygen.nl/files/$AssetName"
+		AssetURL = "https://get.helm.sh/$AssetName"
 	}
 	Install-BuildTool @Params
 	Write-PackageVars @{
 		env = @{
-			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'doxygen.exe' | Select-Object -First 1).DirectoryName
+			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'helm.exe' | Select-Object -First 1).DirectoryName
 		}
 	}
 }
 
 function global:Test-PwrPackageInstall {
-	Airpower exec 'file:///\pkg' {
-		doxygen --version
+	airpower exec 'file:///\pkg' {
+		helm version
 	}
 }

@@ -15,10 +15,10 @@ function global:Install-PwrPackage {
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
-	$bundle = "$env:Temp\$($Asset.Name)"
+	$bundle = "$env:TEMP\$($Asset.Name)"
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile $bundle
-	Expand-Archive $bundle "$env:temp\bundle"
-	Expand-Archive "$env:temp\bundle\CascadiaPackage_$($Asset.Identifier.Substring(1))_x64.msix" "\pkg"
+	Expand-Archive $bundle "$env:TEMP\bundle"
+	Expand-Archive "$env:TEMP\bundle\CascadiaPackage_$($Asset.Identifier.Substring(1))_x64.msix" "\pkg"
 	Write-PackageVars @{
 		env = @{
 			path = (Get-ChildItem -Path '\pkg' -Recurse -Include 'wt.exe' | Select-Object -First 1).DirectoryName

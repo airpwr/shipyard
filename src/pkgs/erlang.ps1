@@ -15,7 +15,7 @@ function global:Install-PwrPackage {
 	if ($PwrPackageConfig.UpToDate) {
 		return
 	}
-	$erlang = "$env:Temp\$($Asset.Name)"
+	$erlang = "$env:TEMP\$($Asset.Name)"
 	Invoke-WebRequest -UseBasicParsing $Asset.URL -OutFile $erlang
 	Airpower load 7-zip
 	& "7z.exe" x -o'\pkg' $erlang | Out-Null
