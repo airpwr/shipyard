@@ -28,7 +28,13 @@ function global:Install-PwrPackage {
 }
 
 function global:Test-PwrPackageInstall {
-	Airpower exec 'file:///\pkg' {
-		notepad++ --help
-	}
+    try {
+        # Attempt to run the program
+        & "\pkg\notepad++.exe"
+        Write-Host "Program executed successfully."
+    } catch [System.Management.Automation.CommandNotFoundException] {
+        Write-Error "The command was not found: $($_.Exception.Message)"
+    } catch {
+        Write-Error "An error occurred during execution: $($_.Exception.Message)"
+    }
 }
