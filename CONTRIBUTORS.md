@@ -9,6 +9,7 @@
 - Copyright 2023 Thomas Bateson <thomas.bateson@eagles.oc.edu>
 - Copyright 2024 Levi Golston <levi.golston@us.af.mil>
 - Copyright 2026 Mark Shook <mark.a.shook@gmail.com>
+- Copyright 2026 Taylor Littlefield <taylor.littlefield@us.af.mil>
 - _Add the copyright date, your name, and email address here. (PLEASE KEEP THIS LINE)_
 
 ## Note for U.S. Federal Employees
