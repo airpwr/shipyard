@@ -16,7 +16,7 @@ function global:Install-PwrPackage {
 	$VersionWanted = if ($env:GITHUB_REF_NAME -match '-([0-9]+\.[0-9]+\.[0-9]+)$') { [SemanticVersion]::new($Matches[1]) } else { $null }
 	# See https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
 	(Invoke-WebRequest 'https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history').Content -split '</tr>' | ForEach-Object {
-		if ($_ -match '(?s)<tr\b.+\bLTSC\b.+>([0-9]+\.[0-9]+\.[0-9]+)</.+ href="([^"]+/vs_BuildTools\.exe)"') {
+		if ($_ -match '(?s)<tr\b.+\b(?:Current|LTSC|Stable)\b.+>([0-9]+\.[0-9]+\.[0-9]+)(?:\s+[^<]*)</.+ href="([^"]+/vs_BuildTools\.exe)"') {
 			$NewVersion = [SemanticVersion]::new($Matches[1])
 			if (($null -ne $VersionWanted -and $VersionWanted.CompareTo($NewVersion) -eq 0) -or
 					($null -eq $VersionWanted -and $NewVersion -notin $PwrPackageConfig.Tags -and (-not $VSInfo -or $NewVersion.LaterThan($VSInfo.Version)))) {
