@@ -153,6 +153,7 @@ function Install-BuildTool {
 		[Parameter(Mandatory=$true)][string]$AssetName,
 		[Parameter(Mandatory=$true)][string]$AssetURL,
 		[string]$ToolDir = '\pkg'
+		[switch]$StripTopLevel
 	)
 	$Asset = "$env:TEMP\$AssetName"
 	Write-Output "downloading $AssetURL to $Asset"
@@ -164,5 +165,10 @@ function Install-BuildTool {
 	} ElseIf ($AssetName -match '\.zip$') {
 		Write-Debug "Extracting $Asset as zip archive to $ToolDir"
 		Expand-Archive $Asset $ToolDir
+	}
+	if ($StripTopLevel) {
+		$TopLevelDir = Get-ChildItem $ToolDir -Directory | Select-Object -First 1
+		Move-Item "$($TopLevelDir.FullName)\*" $ToolDir -Force
+		Remove-Item $TopLevelDir.FullName -Force
 	}
 }
