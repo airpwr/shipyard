@@ -152,7 +152,7 @@ function Install-BuildTool {
 	param (
 		[Parameter(Mandatory=$true)][string]$AssetName,
 		[Parameter(Mandatory=$true)][string]$AssetURL,
-		[string]$ToolDir = '\pkg'
+		[string]$ToolDir = '\pkg',
 		[switch]$StripTopLevel
 	)
 	$Asset = "$env:TEMP\$AssetName"
