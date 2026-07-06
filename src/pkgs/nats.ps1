@@ -20,6 +20,7 @@ function global:Install-PwrPackage
   $Params = @{
     AssetName = $Asset.Name
     AssetURL = $Asset.URL
+    StripTopLevel = $true
   }
   Install-BuildTool @Params
   Write-PackageVars @{
