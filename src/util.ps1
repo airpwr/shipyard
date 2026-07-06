@@ -167,8 +167,9 @@ function Install-BuildTool {
 		Expand-Archive $Asset $ToolDir
 	}
 	if ($StripTopLevel) {
-		$TopLevelDir = Get-ChildItem $ToolDir -Directory | Select-Object -First 1
-		Move-Item "$($TopLevelDir.FullName)\*" $ToolDir -Force
-		Remove-Item $TopLevelDir.FullName -Force
+		Get-ChildItem $ToolDir -Directory | ForEach-Object {
+			Move-Item "$($_.FullName)\*" $ToolDir -Force
+			Remove-Item $_.FullName -Force
+		}
 	}
 }
