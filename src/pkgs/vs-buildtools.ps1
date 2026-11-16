@@ -3,10 +3,10 @@ $global:PwrPackageConfig = @{
 }
 
 $global:MSVCVersions = @(
-	@{Name = 'msvc143'; Archs = @('x86', 'x64', 'amd64', 'arm', 'arm64')},
+	@{Name = 'msvc144'; Archs = @('x86', 'x64', 'amd64', 'arm64')},
+	@{Name = 'msvc143'; Ver = '14.44'; Archs = @('x86', 'x64', 'amd64', 'arm64')},
 	@{Name = 'msvc142'; Ver = '14.29'; Archs = @('x86', 'x64', 'amd64')},
-	@{Name = 'msvc141'; Ver = '14.16'; Archs = @('x86', 'x64', 'amd64')},
-	@{Name = 'msvc140'; Ver = '14.0';  Archs = @('x86', 'x64', 'amd64', 'arm')}
+	@{Name = 'msvc141'; Ver = '14.16'; Archs = @('x86', 'x64', 'amd64')}
 )
 
 function global:Install-PwrPackage {
@@ -14,9 +14,9 @@ function global:Install-PwrPackage {
 	$NewVersion = $null
 	$VSInfo = $null
 	$VersionWanted = if ($env:GITHUB_REF_NAME -match '-([0-9]+\.[0-9]+\.[0-9]+)$') { [SemanticVersion]::new($Matches[1]) } else { $null }
-	# See https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
-	(Invoke-WebRequest 'https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history').Content -split '</tr>' | ForEach-Object {
-		if ($_ -match '(?s)<tr\b.+\b(?:Current|LTSC|Stable)\b.+>([0-9]+\.[0-9]+\.[0-9]+)(?:\s+[^<]*)</.+ href="([^"]+/vs_BuildTools\.exe)"') {
+	# See https://learn.microsoft.com/en-us/visualstudio/releases/2026/release-history
+	(Invoke-WebRequest 'https://learn.microsoft.com/en-us/visualstudio/releases/2026/release-history').Content -split '</tr>' | ForEach-Object {
+		if ($_ -match '(?s)<tr\b.+\bLTSC\b.+>([0-9]+\.[0-9]+\.[0-9]+)(?:\s[^<]*)?</.+ href="([^"]+/vs_BuildTools\.exe)"') {
 			$NewVersion = [SemanticVersion]::new($Matches[1])
 			if (($null -ne $VersionWanted -and $VersionWanted.CompareTo($NewVersion) -eq 0) -or
 					($null -eq $VersionWanted -and $NewVersion -notin $PwrPackageConfig.Tags -and (-not $VSInfo -or $NewVersion.LaterThan($VSInfo.Version)))) {
@@ -42,11 +42,12 @@ function global:Install-PwrPackage {
 		"--add Microsoft.VisualStudio.Component.VC.Tools.ARM",
 		"--add Microsoft.VisualStudio.Component.VC.Tools.ARM64",
 		"--add Microsoft.VisualStudio.Component.VC.Tools.ARM64EC",
+		"--add Microsoft.VisualStudio.Component.VC.CLI.Support",
+		"--add Microsoft.VisualStudio.ComponentGroup.VC.Tools.143.x86.x64",
 		"--add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64",
-		"--add Microsoft.VisualStudio.Component.VC.v141.x86.x64",
-		"--add Microsoft.VisualStudio.Component.VC.140"
+		"--add Microsoft.VisualStudio.Component.VC.v141.x86.x64"
 	)
-	$setup = Start-Process ./vs_buildtools.exe "--quiet --wait --norestart --nocache --installPath `"%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools`" $($Options -join ' ')" -Wait -PassThru
+	$setup = Start-Process ./vs_buildtools.exe "--quiet --wait --norestart --nocache --installPath `"%ProgramFiles(x86)%\Microsoft Visual Studio\2026\BuildTools`" $($Options -join ' ')" -Wait -PassThru
 	if ($setup.ExitCode -NotIn @(0, 3010)) {
 		Write-Error "Visual Studio Build Tools setup failed with error code $($setup.ExitCode)"
 	}
@@ -54,14 +55,11 @@ function global:Install-PwrPackage {
 	mkdir "${env:ProgramFiles(x86)}\pkg" -Force | Out-Null
 	New-Item -Type Junction -Target "${env:ProgramFiles(x86)}\pkg" -Path '\pkg'
 	Move-Item "${env:ProgramFiles(x86)}\Microsoft Visual Studio*", "${env:ProgramFiles(x86)}\Windows Kits" "${env:ProgramFiles(x86)}\pkg\"
-	[System.IO.File]::WriteAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat',
-		[System.IO.File]::ReadAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat').
+	[IO.File]::WriteAllText('\pkg\Microsoft Visual Studio\2026\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat',
+		[IO.File]::ReadAllText('\pkg\Microsoft Visual Studio\2026\BuildTools\Common7\Tools\vsdevcmd\core\winsdk.bat').
 		Replace('reg query "%1\Microsoft\Microsoft SDKs\Windows\v10.0" /v "InstallationFolder"', 'echo InstallationFolder X %~dp0..\..\..\..\..\..\..\Windows Kits\10\').
 		Replace('reg query "%1\Microsoft\Microsoft SDKs\Windows\v8.1" /v "InstallationFolder"', 'echo InstallationFolder X %~dp0..\..\..\..\..\..\..\Windows Kits\8.1\').
 		Replace('reg query "%1\Microsoft\Windows Kits\Installed Roots" /v "KitsRoot10"', 'echo KitsRoot10 X %~dp0..\..\..\..\..\..\..\Windows Kits\10\'))
-	[System.IO.File]::WriteAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\ext\vcvars\vcvars140.bat',
-		[System.IO.File]::ReadAllText('\pkg\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\vsdevcmd\ext\vcvars\vcvars140.bat').
-		Replace('reg query "%1\Microsoft\VisualStudio\SxS\VC7" /v "14.0"', 'echo 14.0 X %~dp0..\..\..\..\..\..\..\..\Microsoft Visual Studio 14.0\VC\'))
 	Write-Output 'Done Hacking'
 	$PwrPackageVars = @{}
 	foreach ($msvc in $MSVCVersions) {
@@ -103,13 +101,20 @@ function global:Install-PwrPackage {
 function global:Test-PwrPackageInstall {
 	Write-Host '--- Testing config default ---'
 	Airpower exec 'file:///\pkg' {
-		cl
+		[IO.File]::WriteAllText('\HelloWorld.cxx', "#include <iostream>`nint main() { std::cout << `"Hello world from MSVC `" << _MSC_VER << `".`" << std::endl; }")
+		cl /EHsc \HelloWorld.cxx
+		./HelloWorld.exe
 	}
 	foreach ($msvc in $MSVCVersions) {
 		foreach ($arch in $msvc.Archs) {
 			Write-Host "--- Testing config $($msvc.name)-$arch ---"
 			Airpower exec "file:///\pkg < $($msvc.name)-$arch" {
-				cl
+				if ($arch -in @('x86', 'x64', 'amd64')) {
+					cl /EHsc \HelloWorld.cxx
+					./HelloWorld.exe
+				} else {
+					cl
+				}
 			}
 		}
 	}
